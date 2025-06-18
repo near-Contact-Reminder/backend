@@ -124,6 +124,7 @@ class FriendControllerTest {
             fieldWithPath("[].name").description("친구 이름"),
             fieldWithPath("[].imageUrl").description("친구 프로필 이미지 URL"),
             fieldWithPath("[].fileName").description("친구 프로필 이미지 파일 이름"),
+            fieldWithPath("[].lastContactAt").description("마지막 연락 날짜"),
     };
 
     private static final String AUTHORIZATION_HEADER = "Authorization";

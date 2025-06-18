@@ -54,6 +54,8 @@ public class FriendDto {
 
             private String phone;
 
+            @JsonFormat(pattern = "yyyy-MM-dd")
+            @DateTimeFormat(pattern = "yyyy-MM-dd")
             private LocalDate birthDay;
 
             private FriendRelation relation;
@@ -135,6 +137,7 @@ public class FriendDto {
             private String name;
             private FriendSource source;
             private FriendContactFrequency contactFrequency;
+            @JsonFormat(pattern = "yyyy-MM-dd")
             private LocalDate nextContactAt;
             private String phone;
             private String preSignedImageUrl;
@@ -148,6 +151,7 @@ public class FriendDto {
 
                 private Long id;
                 private String title;
+                @JsonFormat(pattern = "yyyy-MM-dd")
                 private LocalDate date;
 
                 public static FriendAnniversaryCreateResponse fromEntity(FriendAnniversary entity) {
@@ -188,9 +192,11 @@ public class FriendDto {
         private String name;
         private String imageUrl;
         private String fileName;
+        @JsonFormat(pattern = "yyyy-MM-dd")
+        private LocalDate lastContactAt;
 
         public static FriendListResponse fromEntity(Friend friend, String imageUrl,
-                String fileName) {
+                String fileName, FriendCheckingLog friendCheckingLog) {
             return FriendListResponse.builder()
                     .friendId(friend.getFriendId())
                     .position(friend.getPosition())
@@ -198,6 +204,9 @@ public class FriendDto {
                     .name(friend.getName())
                     .imageUrl(imageUrl)
                     .fileName(fileName)
+                    .lastContactAt(
+                            friendCheckingLog != null ? friendCheckingLog.getCreatedAt()
+                                    .toLocalDate() : null)
                     .build();
         }
     }
@@ -224,6 +233,7 @@ public class FriendDto {
         private List<FriendAnniversaryDetailResponse> anniversaryList;
         private String memo;
         private String phone;
+        @JsonFormat(pattern = "yyyy-MM-dd")
         private LocalDate lastContactAt;
 
         @Getter
@@ -232,6 +242,7 @@ public class FriendDto {
 
             private Long id;
             private String title;
+            @JsonFormat(pattern = "yyyy-MM-dd")
             private LocalDate date;
 
             public static FriendAnniversaryDetailResponse fromEntity(FriendAnniversary entity) {
@@ -291,6 +302,8 @@ public class FriendDto {
         private String name;
         private FriendRelation relation;
         private FriendContactFrequency contactFrequency;
+        @JsonFormat(pattern = "yyyy-MM-dd")
+        @DateTimeFormat(pattern = "yyyy-MM-dd")
         private LocalDate birthday;
         private List<FriendAnniversaryDetailUpdateRequest> anniversaryList;
         private String memo;
@@ -304,6 +317,8 @@ public class FriendDto {
 
             private Long id;
             private String title;
+            @JsonFormat(pattern = "yyyy-MM-dd")
+            @DateTimeFormat(pattern = "yyyy-MM-dd")
             private LocalDate date;
         }
     }
@@ -315,6 +330,7 @@ public class FriendDto {
         private UUID friendId;
         private String name;
         private FriendRemind type;
+        @JsonFormat(pattern = "yyyy-MM-dd")
         private LocalDate nextContactAt;
     }
 }

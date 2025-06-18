@@ -187,8 +187,13 @@ public class FriendServiceImpl implements FriendService {
                             imageFile.getCategory(),
                             imageFile.getFileName()
                     ).getPreSignedUrl() : null;
-
-                    return FriendListResponse.fromEntity(friend, imageUrl, fileName);
+                    FriendCheckingLog friendCheckingLog =
+                            friendCheckingLogRepository
+                                    .findFirstByFriend_FriendIdAndIsCheckedTrueOrderByCreatedAtDesc(
+                                            friend.getFriendId())
+                                    .orElse(null);
+                    return FriendListResponse.fromEntity(friend, imageUrl, fileName,
+                            friendCheckingLog);
                 })
                 .toList();
     }
