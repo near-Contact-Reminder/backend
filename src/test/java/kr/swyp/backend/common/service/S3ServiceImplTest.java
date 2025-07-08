@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.util.UUID;
+import kr.swyp.backend.common.config.S3Properties;
 import kr.swyp.backend.common.dto.FileDto.FileDeleteRequest;
 import kr.swyp.backend.common.dto.FileDto.FileDownloadResponse;
 import kr.swyp.backend.common.dto.FileDto.FileUploadRequest;
@@ -26,10 +27,12 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectResponse;
 @ActiveProfiles("test")
 public class S3ServiceImplTest {
 
-    private final String BUCKET_NAME = "test-bucket";
 
     @Autowired
     private S3ServiceImpl s3Service;
+
+    @Autowired
+    private S3Properties s3Properties;
 
     @Autowired
     private FileRepository fileRepository;
@@ -55,7 +58,7 @@ public class S3ServiceImplTest {
         // then
         assertThat(response).isNotNull();
         assertThat(response.getPreSignedUrl()).isNotEmpty();
-        assertThat(response.getPreSignedUrl()).contains(BUCKET_NAME);
+        assertThat(response.getPreSignedUrl()).contains(s3Properties.getBucketName());
         assertThat(response.getPreSignedUrl()).contains("test.txt");
     }
 
@@ -74,7 +77,7 @@ public class S3ServiceImplTest {
         // Then
         assertThat(response).isNotNull();
         assertThat(response.getPreSignedUrl()).isNotNull();
-        assertThat(response.getPreSignedUrl()).contains(BUCKET_NAME);
+        assertThat(response.getPreSignedUrl()).contains(s3Properties.getBucketName());
         assertThat(response.getPreSignedUrl())
                 .contains(String.format("%s/%s/%s", category, memberId, fileName));
     }

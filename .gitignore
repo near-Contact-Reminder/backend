@@ -45,5 +45,5 @@ src/main/resources/application-social.yml
 ### Apple Social Login ###
 src/main/resources/static/AuthKey.p8
 
-### NCP Settings ###
-src/main/resources/application-ncp.yml
+### AWS Settings ###
+src/main/resources/application-aws.yml

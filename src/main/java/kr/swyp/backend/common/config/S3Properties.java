@@ -8,8 +8,8 @@ import org.springframework.context.annotation.Configuration;
 @Getter
 @Setter
 @Configuration
-@ConfigurationProperties(prefix = "swyp.ncp.object-storage")
-public class ObjectStorageProperties {
+@ConfigurationProperties(prefix = "swyp.aws.s3")
+public class S3Properties {
 
     private String endPoint;
     private String regionName;
