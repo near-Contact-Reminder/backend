@@ -2,7 +2,7 @@ name: Java CI for Test
 
 on:
   pull_request:
-    branches: [ "main", "dev" ]
+    branches: [ "dev", "main" ]
 
 permissions:
   contents: read

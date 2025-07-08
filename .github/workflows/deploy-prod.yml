@@ -1,0 +1,85 @@
+name: Dev Deploy to AWS ECS (Docker)
+
+on:
+  push:
+    branches: [ "prod" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: write
+      id-token: write
+
+    steps:
+      - name: Bump version and Build
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create a GitHub release
+        uses: ncipollo/release-action@v1.18.0
+        with:
+          tag: ${{ steps.tag_version.outputs.new_tag }}
+          name: Release ${{ steps.tag_version.outputs.new_tag }}
+          body: ${{ steps.tag_version.outputs.changelog }}
+
+      - uses: actions/checkout@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set YML
+        run: |
+          mkdir -p src/main/resources
+          echo "${{ secrets.DEV_APPLICATION_YML }}" | base64 --decode > src/main/resources/application-dev.yml
+          echo "${{ secrets.SOCIAL_APPLICATION_YML }}" | base64 --decode > src/main/resources/application-social.yml
+          echo "${{ secrets.AWS_APPLICATION_YML }}" | base64 --decode > src/main/resources/application-aws.yml
+          find src
+          rm src/main/resources/application-local.yml
+          rm src/main/resources/application-test.yml
+
+      - name: Set AuthKey
+        run: |
+          mkdir -p src/main/resources/static
+          echo "${{ secrets.AUTH_KEY }}" > src/main/resources/static/AuthKey.p8
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew bootJar
+
+      - name: Set AWS IAM User
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          DOCKER_REGISTRY_URL: ${{ vars.DOCKER_REGISTRY_URL }}
+          REPOSITORY_NAME: near-prod
+          IMAGE_TAG: ${{  steps.tag_version.outputs.new_tag }}
+        run: |
+          docker build -t $DOCKER_REGISTRY_URL/$REPOSITORY_NAME:$IMAGE_TAG -f ./Dockerfiles/Dockerfile-dev  .
+          docker image tag $DOCKER_REGISTRY_URL/$REPOSITORY_NAME:$IMAGE_TAG $DOCKER_REGISTRY_URL/$REPOSITORY_NAME:latest
+          docker push $DOCKER_REGISTRY_URL/$REPOSITORY_NAME:$IMAGE_TAG
+          docker push $DOCKER_REGISTRY_URL/$REPOSITORY_NAME:latest
+
+      - name: Deploy to ECS
+        env:
+          ECS_CLUSTER_NAME: ${{ vars.PROD_ECS_CLUSTER_NAME }}
+          ECS_SERVICE_NAME: ${{ vars.PROD_ECS_SERVICE_NAME }}
+        run: |
+          aws ecs update-service --cluster $ECS_CLUSTER_NAME --service $ECS_SERVICE_NAME --force-new-deployment
+
