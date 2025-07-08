@@ -78,6 +78,7 @@ public class SecurityConfig {
                         .requestMatchers("/oauth2/**").permitAll()
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/error/**").permitAll()
+                        .requestMatchers("/actuator/**").permitAll()
                         .anyRequest().authenticated())
 
                 .addFilterBefore(usernamePasswordAuthenticationFilter(),

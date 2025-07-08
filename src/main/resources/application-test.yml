@@ -1,7 +1,7 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:17254/SWYP_TEST
+    url: jdbc:mysql://localhost:17254/NEAR_TEST
     username: root
     password: test
   jpa:
@@ -29,10 +29,10 @@ swyp:
     secret: fJm76UJ3g8JL5P9tM3vUZbpuNDKVwGD8RQeMbwu2T15iZpvTM0LQCqERiXqK4Xc0
     access-token-validity-in-milli-seconds: 86400000 # 1일
     refresh-token-validity-in-days: 7 # 7일
-  ncp:
-    object-storage:
+  aws:
+    s3:
       end-point: http://localhost:4566
-      region-name: kr-standard
+      region-name: ap-northeast-2
       bucket-name: test-bucket
       access-key: test
       secret-key: test

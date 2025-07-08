@@ -1,8 +1,8 @@
-name: Dev Deploy to NCP
+name: Dev Deploy to AWS ECS (Docker)
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "dev" ]
 
 jobs:
   build:
@@ -21,7 +21,7 @@ jobs:
           mkdir -p src/main/resources
           echo "${{ secrets.DEV_APPLICATION_YML }}" | base64 --decode > src/main/resources/application-dev.yml
           echo "${{ secrets.SOCIAL_APPLICATION_YML }}" | base64 --decode > src/main/resources/application-social.yml
-          echo "${{ secrets.NCP_APPLICATION_YML }}" | base64 --decode > src/main/resources/application-ncp.yml
+          echo "${{ secrets.AWS_APPLICATION_YML }}" | base64 --decode > src/main/resources/application-aws.yml
           find src
           rm src/main/resources/application-local.yml
           rm src/main/resources/application-test.yml
@@ -43,18 +43,21 @@ jobs:
       - id: commit-hash
         uses: prompt/actions-commit-hash@v3
 
-      - name: Login to NCP Container Registry
-        uses: docker/login-action@v3
+      - name: Set AWS IAM User
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          registry: near.kr.ncr.ntruss.com
-          username: ${{ secrets.NCP_ACCESS_KEY }}
-          password: ${{ secrets.NCP_SECRET_KEY }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: ap-northeast-2
 
-      - name: Build, tag, and push image to NCP Container registry
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, tag, and push image to Amazon ECR
         id: build-image
         env:
-          DOCKER_REGISTRY_URL: near.kr.ncr.ntruss.com
-          REPOSITORY_NAME: near-io-kr-dev
+          DOCKER_REGISTRY_URL: ${{ vars.DOCKER_REGISTRY_URL }}
+          REPOSITORY_NAME: near-dev
           IMAGE_TAG: ${{ format('{0}-{1}', env.date, steps.commit-hash.outputs.short) }}
         run: |
           docker build -t $DOCKER_REGISTRY_URL/$REPOSITORY_NAME:$IMAGE_TAG -f ./Dockerfiles/Dockerfile-dev  .
@@ -62,14 +65,10 @@ jobs:
           docker push $DOCKER_REGISTRY_URL/$REPOSITORY_NAME:$IMAGE_TAG
           docker push $DOCKER_REGISTRY_URL/$REPOSITORY_NAME:latest
 
-      - name: Deploy to EC2
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.NCP_DEV_IP }}
-          username: root
-          password: ${{ secrets.NCP_DEV_PASSWORD }}
-          script: |
-            ./start.sh
-            docker compose down
-            docker compose pull
-            docker compose up -d
+      - name: Deploy to ECS
+        env:
+          ECS_CLUSTER_NAME: ${{ vars.DEV_ECS_CLUSTER_NAME }}
+          ECS_SERVICE_NAME: ${{ vars.DEV_ECS_SERVICE_NAME }}
+        run: |
+          aws ecs update-service --cluster $ECS_CLUSTER_NAME --service $ECS_SERVICE_NAME --force-new-deployment
+

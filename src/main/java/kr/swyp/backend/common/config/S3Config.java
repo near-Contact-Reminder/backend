@@ -1,6 +1,5 @@
 package kr.swyp.backend.common.config;
 
-import java.net.URI;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,7 +15,7 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 @RequiredArgsConstructor
 public class S3Config {
 
-    private final ObjectStorageProperties properties;
+    private final S3Properties properties;
 
     public AwsCredentialsProvider awsCredentialsProvider() {
         AwsCredentials awsCredentials = AwsBasicCredentials.create(properties.getAccessKey(),
@@ -28,7 +27,6 @@ public class S3Config {
     public S3Client amazonS3Client() {
         return S3Client.builder()
                 .credentialsProvider(awsCredentialsProvider())
-                .endpointOverride(URI.create(properties.getEndPoint()))
                 .region(Region.of(properties.getRegionName()))
                 .build();
     }
@@ -37,7 +35,6 @@ public class S3Config {
     public S3Presigner amazonS3Presigner() {
         return S3Presigner.builder()
                 .credentialsProvider(awsCredentialsProvider())
-                .endpointOverride(URI.create(properties.getEndPoint()))
                 .region(Region.of(properties.getRegionName()))
                 .build();
     }

@@ -2,7 +2,7 @@ package kr.swyp.backend.common.service;
 
 import java.time.Duration;
 import java.util.UUID;
-import kr.swyp.backend.common.config.ObjectStorageProperties;
+import kr.swyp.backend.common.config.S3Properties;
 import kr.swyp.backend.common.domain.File;
 import kr.swyp.backend.common.dto.FileDto.FileDeleteRequest;
 import kr.swyp.backend.common.dto.FileDto.FileDownloadResponse;
@@ -31,7 +31,7 @@ public class S3ServiceImpl implements S3Service {
 
     private final S3Client s3Client;
     private final S3Presigner s3Presigner;
-    private final ObjectStorageProperties properties;
+    private final S3Properties properties;
     private final FileRepository fileRepository;
 
     @Override

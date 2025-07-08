@@ -1,7 +1,7 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:17254/SWYP
+    url: jdbc:mysql://localhost:17254/NEAR
     username: root
     password: test
   jpa:
@@ -23,7 +23,7 @@ spring:
   config:
     import:
       - classpath:/application-social.yml
-      - classpath:/application-ncp.yml
+      - classpath:/application-aws.yml
 
 swyp:
   jwt:
