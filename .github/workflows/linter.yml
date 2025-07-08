@@ -4,7 +4,7 @@ on:
   push:
     branches: [ "**" ]
   pull_request:
-    branches: [ "dev", "main" ]
+    branches: [ "dev", "prod" ]
 
 jobs:
   build:
@@ -28,7 +28,7 @@ jobs:
           VALIDATE_ALL_CODEBASE: false
           VALIDATE_JAVA: true
           JAVA_FILE_NAME: checkstyle.xml
-          DEFAULT_BRANCH: main
+          DEFAULT_BRANCH: dev
           LINTER_RULES_PATH: /
           FILTER_REGEX_EXCLUDE: .*src/test.*
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

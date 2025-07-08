@@ -1,4 +1,4 @@
-name: Dev Deploy to AWS ECS (Docker)
+name: Prod Deploy to AWS ECS (Docker)
 
 on:
   push:
@@ -36,7 +36,7 @@ jobs:
       - name: Set YML
         run: |
           mkdir -p src/main/resources
-          echo "${{ secrets.DEV_APPLICATION_YML }}" | base64 --decode > src/main/resources/application-dev.yml
+          echo "${{ secrets.PROD_APPLICATION_YML }}" | base64 --decode > src/main/resources/application-dev.yml
           echo "${{ secrets.SOCIAL_APPLICATION_YML }}" | base64 --decode > src/main/resources/application-social.yml
           echo "${{ secrets.AWS_APPLICATION_YML }}" | base64 --decode > src/main/resources/application-aws.yml
           find src
@@ -71,7 +71,7 @@ jobs:
           REPOSITORY_NAME: near-prod
           IMAGE_TAG: ${{  steps.tag_version.outputs.new_tag }}
         run: |
-          docker build -t $DOCKER_REGISTRY_URL/$REPOSITORY_NAME:$IMAGE_TAG -f ./Dockerfiles/Dockerfile-dev  .
+          docker build -t $DOCKER_REGISTRY_URL/$REPOSITORY_NAME:$IMAGE_TAG -f ./Dockerfiles/Dockerfile-prod  .
           docker image tag $DOCKER_REGISTRY_URL/$REPOSITORY_NAME:$IMAGE_TAG $DOCKER_REGISTRY_URL/$REPOSITORY_NAME:latest
           docker push $DOCKER_REGISTRY_URL/$REPOSITORY_NAME:$IMAGE_TAG
           docker push $DOCKER_REGISTRY_URL/$REPOSITORY_NAME:latest
