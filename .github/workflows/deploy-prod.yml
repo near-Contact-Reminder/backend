@@ -36,7 +36,7 @@ jobs:
       - name: Set YML
         run: |
           mkdir -p src/main/resources
-          echo "${{ secrets.PROD_APPLICATION_YML }}" | base64 --decode > src/main/resources/application-dev.yml
+          echo "${{ secrets.PROD_APPLICATION_YML }}" | base64 --decode > src/main/resources/application-prod.yml
           echo "${{ secrets.SOCIAL_APPLICATION_YML }}" | base64 --decode > src/main/resources/application-social.yml
           echo "${{ secrets.AWS_APPLICATION_YML }}" | base64 --decode > src/main/resources/application-aws.yml
           find src
