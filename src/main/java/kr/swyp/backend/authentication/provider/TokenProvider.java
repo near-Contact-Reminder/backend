@@ -8,6 +8,7 @@ import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Arrays;
@@ -101,6 +102,8 @@ public class TokenProvider {
             log.info("[토큰 검증 중 에러] 지원하지 않는 JWT입니다. 애러 메시지: {}", e.getMessage());
         } catch (IllegalArgumentException e) {
             log.info("[토큰 검증 중 에러] JWT claims 문자열이 빈 값 입니다. 애러 메시지: {}", e.getMessage());
+        } catch (SignatureException e) {
+            log.info("[토큰 검증 중 에러] JWT 서명이 유효하지 않습니다. 애러 메시지: {}", e.getMessage());
         }
         return false;
     }
