@@ -74,7 +74,7 @@ public class Member extends BaseEntity implements UserDetails {
     private LocalDateTime withdrawnAt;
 
     @Default
-    @OneToMany(mappedBy = "member", fetch = FetchType.EAGER,
+    @OneToMany(mappedBy = "member", fetch = FetchType.LAZY,
             cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Role> roles = new ArrayList<>();
 
