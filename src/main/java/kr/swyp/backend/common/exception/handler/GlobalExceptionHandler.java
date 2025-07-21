@@ -18,7 +18,8 @@ import org.springframework.web.server.MethodNotAllowedException;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(AuthException.class)
-    public ResponseEntity<ErrorInfo> handleAuthException(AuthException e, HttpServletRequest request) {
+    public ResponseEntity<ErrorInfo> handleAuthException(AuthException e,
+            HttpServletRequest request) {
         log.info("[인증 과정에 오류 발생] 엔드포인트: {} {}, 에러 메시지: {}",
                 request.getMethod(), request.getRequestURI(), e.getMessage());
         return responseException(e.getCode(), e.getMessage(), e.getHttpStatus());
