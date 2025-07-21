@@ -65,9 +65,9 @@ public class Member extends BaseEntity implements UserDetails {
     @Column(name = "IS_ACTIVE")
     private Boolean isActive;
 
-    @Comment("마케팅 수신 동의 시각")
-    @Column(name = "MARKETING_AGREED_AT")
-    private LocalDateTime marketingAgreedAt;
+    @Comment("알림 수신 동의 시각")
+    @Column(name = "NOTIFICATION_AGREED_AT")
+    private LocalDateTime notificationAgreedAt;
 
     @Comment("탈퇴 시각")
     @Column(name = "WITHDRAWN_AT")

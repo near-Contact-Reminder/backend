@@ -58,7 +58,7 @@ class MemberControllerTest {
             fieldWithPath("username").description("회원 이메일"),
             fieldWithPath("nickname").description("사용자 이름"),
             fieldWithPath("imageUrl").description("프로필 이미지 URL").optional(),
-            fieldWithPath("marketingAgreedAt").description("마케팅 수신 동의 시각").optional(),
+            fieldWithPath("notificationAgreedAt").description("알림 수신 동의 시각").optional(),
             fieldWithPath("providerType").description("소셜 로그인 제공자"),
     };
 

@@ -179,7 +179,7 @@ public class UsernamePasswordAuthenticationTest {
                 .nickname(nickname)
                 .password(encodedPassword)
                 .isActive(true)
-                .marketingAgreedAt(LocalDateTime.now())
+                .notificationAgreedAt(LocalDateTime.now())
                 .build();
 
         member.addRole(RoleType.USER);
