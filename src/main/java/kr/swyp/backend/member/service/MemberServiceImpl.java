@@ -13,7 +13,6 @@ import kr.swyp.backend.member.dto.MemberDto.CheckRateResponse;
 import kr.swyp.backend.member.dto.MemberDto.MemberInfoResponse;
 import kr.swyp.backend.member.dto.MemberDto.MemberWithdrawRequest;
 import kr.swyp.backend.member.repository.MemberCheckRateRepository;
-import kr.swyp.backend.member.repository.MemberNotificationSettingRepository;
 import kr.swyp.backend.member.repository.MemberRepository;
 import kr.swyp.backend.member.repository.MemberSocialLoginInfoRepository;
 import kr.swyp.backend.member.repository.MemberWithdrawalLogRepository;
@@ -28,7 +27,6 @@ public class MemberServiceImpl implements MemberService {
     private final MemberRepository memberRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final MemberSocialLoginInfoRepository socialLoginInfoRepository;
-    private final MemberNotificationSettingRepository notificationSettingRepository;
     private final MemberWithdrawalLogRepository memberWithdrawalLogRepository;
     private final MemberCheckRateRepository memberCheckRateRepository;
     private final FriendRepository friendRepository;
@@ -74,9 +72,6 @@ public class MemberServiceImpl implements MemberService {
 
         // 소셜 로그인 정보 삭제
         socialLoginInfoRepository.deleteByMember(member);
-
-        // 푸시 알림 설정 삭제
-        notificationSettingRepository.deleteByMemberId(member.getMemberId());
     }
 
     @Override

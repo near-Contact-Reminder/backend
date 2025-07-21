@@ -48,12 +48,10 @@ import kr.swyp.backend.friend.repository.FriendCheckingLogRepository;
 import kr.swyp.backend.friend.repository.FriendDetailRepository;
 import kr.swyp.backend.friend.repository.FriendRepository;
 import kr.swyp.backend.member.domain.Member;
-import kr.swyp.backend.member.domain.MemberNotificationSetting;
 import kr.swyp.backend.member.domain.MemberSocialLoginInfo;
 import kr.swyp.backend.member.dto.MemberDetails;
 import kr.swyp.backend.member.enums.RoleType;
 import kr.swyp.backend.member.enums.SocialLoginProviderType;
-import kr.swyp.backend.member.repository.MemberNotificationSettingRepository;
 import kr.swyp.backend.member.repository.MemberRepository;
 import kr.swyp.backend.member.repository.MemberSocialLoginInfoRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -151,9 +149,6 @@ class FriendControllerTest {
     private MemberSocialLoginInfoRepository socialLoginInfoRepository;
 
     @Autowired
-    private MemberNotificationSettingRepository notificationSettingRepository;
-
-    @Autowired
     private FriendCheckingLogRepository friendCheckingLogRepository;
 
     @Autowired
@@ -188,12 +183,6 @@ class FriendControllerTest {
                 .member(testMember)
                 .providerType(SocialLoginProviderType.KAKAO)
                 .providerId("kakao_123")
-                .build());
-
-        // 푸시 알림 설정 추가
-        notificationSettingRepository.save(MemberNotificationSetting.builder()
-                .memberId(testMember.getMemberId())
-                .enablePush(true)
                 .build());
 
         // 친구 설정
