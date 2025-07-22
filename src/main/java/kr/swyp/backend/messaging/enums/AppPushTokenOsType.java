@@ -1,6 +1,6 @@
 package kr.swyp.backend.messaging.enums;
 
-public enum AppTokenOsType {
+public enum AppPushTokenOsType {
     ANDROID,
     IOS,
 }

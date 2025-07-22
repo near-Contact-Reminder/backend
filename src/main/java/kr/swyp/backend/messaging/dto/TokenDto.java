@@ -1,7 +1,7 @@
 package kr.swyp.backend.messaging.dto;
 
 import jakarta.validation.constraints.NotNull;
-import kr.swyp.backend.messaging.enums.AppTokenOsType;
+import kr.swyp.backend.messaging.enums.AppPushTokenOsType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -19,7 +19,7 @@ public class TokenDto {
         private String token;
 
         @NotNull
-        private AppTokenOsType osType;
+        private AppPushTokenOsType osType;
     }
 
     @Getter

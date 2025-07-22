@@ -25,7 +25,7 @@ import kr.swyp.backend.member.enums.RoleType;
 import kr.swyp.backend.member.repository.MemberRepository;
 import kr.swyp.backend.messaging.dto.TokenDto.RegisterAppPushTokenRequest;
 import kr.swyp.backend.messaging.dto.TokenDto.UnregisterAppPushTokenRequest;
-import kr.swyp.backend.messaging.enums.AppTokenOsType;
+import kr.swyp.backend.messaging.enums.AppPushTokenOsType;
 import kr.swyp.backend.messaging.service.AppPushMessagingServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -95,7 +95,7 @@ class AppPushMessagingControllerTest {
         UUID memberId = testMember.getMemberId();
         String accessToken = createAccessToken(memberId);
         String token = "test-token";
-        AppTokenOsType osType = AppTokenOsType.IOS;
+        AppPushTokenOsType osType = AppPushTokenOsType.IOS;
 
         RegisterAppPushTokenRequest request = RegisterAppPushTokenRequest.builder()
                 .token(token)
@@ -139,7 +139,7 @@ class AppPushMessagingControllerTest {
         UUID memberId = testMember.getMemberId();
         String accessToken = createAccessToken(memberId);
         String token = "test-token";
-        AppTokenOsType osType = AppTokenOsType.IOS;
+        AppPushTokenOsType osType = AppPushTokenOsType.IOS;
 
         // 먼저 토큰을 등록
         RegisterAppPushTokenRequest registerRequest = RegisterAppPushTokenRequest.builder()

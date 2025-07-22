@@ -11,7 +11,7 @@ import kr.swyp.backend.member.enums.RoleType;
 import kr.swyp.backend.member.repository.MemberRepository;
 import kr.swyp.backend.messaging.dto.TokenDto.RegisterAppPushTokenRequest;
 import kr.swyp.backend.messaging.dto.TokenDto.UnregisterAppPushTokenRequest;
-import kr.swyp.backend.messaging.enums.AppTokenOsType;
+import kr.swyp.backend.messaging.enums.AppPushTokenOsType;
 import kr.swyp.backend.messaging.repository.AppPushTokenRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -41,7 +41,7 @@ class AppPushMessagingServiceImplTest {
         // given
         Member member = createMember("test", "test");
         String token = "test-token";
-        AppTokenOsType osType = AppTokenOsType.IOS;
+        AppPushTokenOsType osType = AppPushTokenOsType.IOS;
 
         // when
         appPushMessagingService.registerDevice(member.getMemberId(),
@@ -62,7 +62,7 @@ class AppPushMessagingServiceImplTest {
         // given
         Member member = createMember("test", "test");
         String token = "test-token";
-        AppTokenOsType osType = AppTokenOsType.IOS;
+        AppPushTokenOsType osType = AppPushTokenOsType.IOS;
 
         // when
         appPushMessagingService.registerDevice(member.getMemberId(),
@@ -82,7 +82,7 @@ class AppPushMessagingServiceImplTest {
         // given
         Member member = createMember("test", "test");
         String originalToken = "original-test-token";
-        AppTokenOsType osType = AppTokenOsType.IOS;
+        AppPushTokenOsType osType = AppPushTokenOsType.IOS;
 
         appPushMessagingService.registerDevice(member.getMemberId(),
                 RegisterAppPushTokenRequest.builder()
@@ -91,7 +91,7 @@ class AppPushMessagingServiceImplTest {
                         .build());
 
         String newToken = "new-test-token";
-        AppTokenOsType newOsType = AppTokenOsType.ANDROID;
+        AppPushTokenOsType newOsType = AppPushTokenOsType.ANDROID;
 
         // when
         appPushMessagingService.registerDevice(member.getMemberId(),
@@ -113,7 +113,7 @@ class AppPushMessagingServiceImplTest {
         // given
         UUID nonExistentMemberId = UUID.randomUUID();
         String token = "test-token";
-        AppTokenOsType osType = AppTokenOsType.IOS;
+        AppPushTokenOsType osType = AppPushTokenOsType.IOS;
 
         // when
         Throwable throwable = catchThrowable(
@@ -134,7 +134,7 @@ class AppPushMessagingServiceImplTest {
         // given
         Member member = createMember("test", "test");
         String token = "test-token";
-        AppTokenOsType osType = AppTokenOsType.IOS;
+        AppPushTokenOsType osType = AppPushTokenOsType.IOS;
 
         appPushMessagingService.registerDevice(member.getMemberId(),
                 RegisterAppPushTokenRequest.builder()
@@ -158,7 +158,7 @@ class AppPushMessagingServiceImplTest {
         // given
         Member member = createMember("test", "test");
         String token = "test-token";
-        AppTokenOsType osType = AppTokenOsType.IOS;
+        AppPushTokenOsType osType = AppPushTokenOsType.IOS;
         appPushMessagingService.registerDevice(member.getMemberId(),
                 RegisterAppPushTokenRequest.builder()
                         .token(token)

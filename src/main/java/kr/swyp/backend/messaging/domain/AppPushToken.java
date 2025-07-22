@@ -11,7 +11,7 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
 import kr.swyp.backend.common.domain.BaseEntity;
-import kr.swyp.backend.messaging.enums.AppTokenOsType;
+import kr.swyp.backend.messaging.enums.AppPushTokenOsType;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -47,9 +47,9 @@ public class AppPushToken extends BaseEntity {
     @Comment("앱 토큰 OS 타입")
     @Column(name = "OS_TYPE")
     @Enumerated(EnumType.STRING)
-    private AppTokenOsType osType;
+    private AppPushTokenOsType osType;
 
-    public void updateToken(String token, AppTokenOsType osType) {
+    public void updateToken(String token, AppPushTokenOsType osType) {
         this.token = token;
         this.osType = osType;
     }
