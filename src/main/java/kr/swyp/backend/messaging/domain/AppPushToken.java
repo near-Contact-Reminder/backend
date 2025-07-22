@@ -48,4 +48,9 @@ public class AppPushToken extends BaseEntity {
     @Column(name = "OS_TYPE")
     @Enumerated(EnumType.STRING)
     private AppTokenOsType osType;
+
+    public void updateToken(String token, AppTokenOsType osType) {
+        this.token = token;
+        this.osType = osType;
+    }
 }

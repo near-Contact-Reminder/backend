@@ -116,4 +116,8 @@ public class Member extends BaseEntity implements UserDetails {
     public void updateWithdrawnAt() {
         this.withdrawnAt = LocalDateTime.now();
     }
+
+    public void updateNotificationAgreedAt(LocalDateTime notificationAgreedAt) {
+        this.notificationAgreedAt = notificationAgreedAt;
+    }
 }
