@@ -1,7 +1,9 @@
-package kr.swyp.backend.member.domain;
+package kr.swyp.backend.messaging.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -9,6 +11,7 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
 import kr.swyp.backend.common.domain.BaseEntity;
+import kr.swyp.backend.messaging.enums.AppPushTokenOsType;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,21 +24,33 @@ import org.hibernate.annotations.Comment;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "MEMBER_NOTIFICATION_SETTING")
-public class MemberNotificationSetting extends BaseEntity {
+@Table(name = "APP_PUSH_TOKEN")
+public class AppPushToken extends BaseEntity {
 
     @Id
+    @Comment("앱 토큰 ID")
+    @Column(name = "APP_TOKEN_ID")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ID")
-    private Long id;
+    private Long appTokenId;
 
     @NotNull
-    @Comment("회원 UUID")
+    @Comment("회원 고유 식별자")
     @Column(name = "MEMBER_ID")
     private UUID memberId;
 
     @NotNull
-    @Comment("푸시 수신 여부")
-    @Column(name = "ENABLE_PUSH")
-    private Boolean enablePush;
+    @Comment("앱 토큰 값")
+    @Column(name = "TOKEN")
+    private String token;
+
+    @NotNull
+    @Comment("앱 토큰 OS 타입")
+    @Column(name = "OS_TYPE")
+    @Enumerated(EnumType.STRING)
+    private AppPushTokenOsType osType;
+
+    public void updateToken(String token, AppPushTokenOsType osType) {
+        this.token = token;
+        this.osType = osType;
+    }
 }

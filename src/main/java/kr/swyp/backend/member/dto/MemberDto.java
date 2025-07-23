@@ -21,7 +21,7 @@ public class MemberDto {
         private String username;
         private String nickname;
         private String imageUrl;
-        private LocalDateTime marketingAgreedAt;
+        private LocalDateTime notificationAgreedAt; // 알림 동의 여부
         private SocialLoginProviderType providerType; // 소셜 로그인 제공자
 
         public static MemberInfoResponse fromEntity(Member member,
@@ -31,7 +31,7 @@ public class MemberDto {
                     .username(member.getUsername())
                     .nickname(member.getNickname())
                     .imageUrl(member.getImageUrl())
-                    .marketingAgreedAt(member.getMarketingAgreedAt())
+                    .notificationAgreedAt(member.getNotificationAgreedAt())
                     .providerType(socialLoginInfo.getProviderType())
                     .build();
         }

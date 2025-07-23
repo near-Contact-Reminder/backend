@@ -21,13 +21,11 @@ import java.util.UUID;
 import kr.swyp.backend.authentication.provider.TokenProvider;
 import kr.swyp.backend.common.desciptor.ErrorDescriptor;
 import kr.swyp.backend.member.domain.Member;
-import kr.swyp.backend.member.domain.MemberNotificationSetting;
 import kr.swyp.backend.member.domain.MemberSocialLoginInfo;
 import kr.swyp.backend.member.dto.MemberDetails;
 import kr.swyp.backend.member.dto.MemberDto.MemberWithdrawRequest;
 import kr.swyp.backend.member.enums.RoleType;
 import kr.swyp.backend.member.enums.SocialLoginProviderType;
-import kr.swyp.backend.member.repository.MemberNotificationSettingRepository;
 import kr.swyp.backend.member.repository.MemberRepository;
 import kr.swyp.backend.member.repository.MemberSocialLoginInfoRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,7 +58,7 @@ class MemberControllerTest {
             fieldWithPath("username").description("회원 이메일"),
             fieldWithPath("nickname").description("사용자 이름"),
             fieldWithPath("imageUrl").description("프로필 이미지 URL").optional(),
-            fieldWithPath("marketingAgreedAt").description("마케팅 수신 동의 시각").optional(),
+            fieldWithPath("notificationAgreedAt").description("알림 수신 동의 시각").optional(),
             fieldWithPath("providerType").description("소셜 로그인 제공자"),
     };
 
@@ -80,9 +78,6 @@ class MemberControllerTest {
 
     @Autowired
     private MemberSocialLoginInfoRepository socialLoginInfoRepository;
-
-    @Autowired
-    private MemberNotificationSettingRepository notificationSettingRepository;
 
     private Member testMember;
     private String accessToken;
@@ -107,12 +102,6 @@ class MemberControllerTest {
                 .member(testMember)
                 .providerType(SocialLoginProviderType.KAKAO)
                 .providerId("kakao_123")
-                .build());
-
-        // 푸시 알림 설정 추가
-        notificationSettingRepository.save(MemberNotificationSetting.builder()
-                .memberId(testMember.getMemberId())
-                .enablePush(true)
                 .build());
 
         // JWT 생성
