@@ -123,6 +123,7 @@ class FriendControllerTest {
             fieldWithPath("[].imageUrl").description("친구 프로필 이미지 URL"),
             fieldWithPath("[].fileName").description("친구 프로필 이미지 파일 이름"),
             fieldWithPath("[].lastContactAt").description("마지막 연락 날짜"),
+            fieldWithPath("[].checkRate").description("챙김 비율"),
     };
 
     private static final String AUTHORIZATION_HEADER = "Authorization";

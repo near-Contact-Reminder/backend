@@ -192,11 +192,12 @@ public class FriendDto {
         private String name;
         private String imageUrl;
         private String fileName;
+        private Integer checkRate;
         @JsonFormat(pattern = "yyyy-MM-dd")
         private LocalDate lastContactAt;
 
         public static FriendListResponse fromEntity(Friend friend, String imageUrl,
-                String fileName, FriendCheckingLog friendCheckingLog) {
+                String fileName, FriendCheckingLog friendCheckingLog, Integer checkRate) {
             return FriendListResponse.builder()
                     .friendId(friend.getFriendId())
                     .position(friend.getPosition())
@@ -207,6 +208,7 @@ public class FriendDto {
                     .lastContactAt(
                             friendCheckingLog != null ? friendCheckingLog.getCreatedAt()
                                     .toLocalDate() : null)
+                    .checkRate(checkRate)
                     .build();
         }
     }
