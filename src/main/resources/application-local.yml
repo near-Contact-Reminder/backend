@@ -1,9 +1,9 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:17254/NEAR
+    url: jdbc:mysql://localhost:3306/NEAR
     username: root
-    password: test
+    password: 1234
   jpa:
     database: mysql
     database-platform: org.hibernate.dialect.MySQLDialect
@@ -18,13 +18,18 @@ spring:
   data:
     redis:
       host: localhost
-      password: password
-      port: 16697
+      password:
+      port: 6379
   config:
     import:
       - classpath:/application-social.yml
       - classpath:/application-aws.yml
-
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          temperature: 0.2
 swyp:
   jwt:
     secret: fJm76UJ3g8JL5P9tM3vUZbpuNDKVwGD8RQeMbwu2T15iZpvTM0LQCqERiXqK4Xc0
