@@ -120,4 +120,9 @@ public class Member extends BaseEntity implements UserDetails {
     public void updateNotificationAgreedAt(LocalDateTime notificationAgreedAt) {
         this.notificationAgreedAt = notificationAgreedAt;
     }
+
+    public void reactivate() {
+        this.withdrawnAt = null;
+        this.isActive = true;
+    }
 }

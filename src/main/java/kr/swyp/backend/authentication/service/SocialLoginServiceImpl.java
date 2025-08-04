@@ -59,7 +59,12 @@ public class SocialLoginServiceImpl implements SocialLoginService {
                         userInfo.getProviderId(), providerType);
 
         if (maybeMemberSocialLoginInfo.isPresent()) {
-            return maybeMemberSocialLoginInfo.get().getMember();
+            Member existingMember = maybeMemberSocialLoginInfo.get().getMember();
+            if (existingMember.getWithdrawnAt() != null) {
+                existingMember.reactivate();
+                memberRepository.save(existingMember);
+            }
+            return existingMember;
         }
 
         Member newMember = Member.builder()

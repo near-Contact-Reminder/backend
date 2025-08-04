@@ -137,4 +137,50 @@ class SocialLoginServiceImplTest {
             socialLoginService.login(providerType, request);
         });
     }
+
+    @Test
+    @DisplayName("탈퇴한 유저가 재가입 시 로그인이 성공해야 한다")
+    void 탈퇴한_유저가_재가입_시_로그인이_성공해야_한다() {
+        // given
+        SocialLoginProviderType providerType = SocialLoginProviderType.KAKAO;
+        SocialLoginDto.Request request = SocialLoginDto.Request.builder().accessToken("test_token")
+                .build();
+        SocialLoginDto.UserInfo withdrawnUserInfo = SocialLoginDto.UserInfo.builder()
+                .providerId("kakao_withdrawn_123")
+                .email("withdrawn.user@kakao.com")
+                .nickname("탈퇴유저")
+                .build();
+
+        Member withdrawnMember = Member.builder().memberId(UUID.randomUUID())
+                .username(withdrawnUserInfo.getEmail())
+                .withdrawnAt(java.time.LocalDateTime.now())
+                .isActive(false)
+                .build();
+        MemberSocialLoginInfo withdrawnSocialInfo = MemberSocialLoginInfo.builder()
+                .member(withdrawnMember)
+                .providerId(withdrawnUserInfo.getProviderId())
+                .providerType(providerType)
+                .build();
+
+        when(kakaoLoginStrategy.getUserInfo(request)).thenReturn(withdrawnUserInfo);
+        when(memberSocialLoginInfoRepository.findByProviderIdAndProviderType(
+                withdrawnUserInfo.getProviderId(), providerType))
+                .thenReturn(Optional.of(withdrawnSocialInfo));
+        when(memberRepository.save(any(Member.class))).thenAnswer(
+                invocation -> invocation.getArgument(0));
+
+        // when
+        MemberInfo memberInfo = socialLoginService.login(providerType, request);
+
+        // then
+        assertNotNull(memberInfo);
+        assertEquals(withdrawnMember.getMemberId(), memberInfo.getMemberId());
+        assertEquals(withdrawnMember.getUsername(), memberInfo.getUsername());
+        assertEquals(null, withdrawnMember.getWithdrawnAt()); // withdrawnAt이 null로 변경되었는지 확인
+        assertEquals(true, withdrawnMember.getIsActive()); // isActive가 true로 변경되었는지 확인
+
+        verify(kakaoLoginStrategy, times(1)).getUserInfo(request);
+        verify(memberRepository, times(1)).save(any(Member.class)); // save가 호출되었는지 확인
+        verify(memberSocialLoginInfoRepository, never()).save(any(MemberSocialLoginInfo.class));
+    }
 }

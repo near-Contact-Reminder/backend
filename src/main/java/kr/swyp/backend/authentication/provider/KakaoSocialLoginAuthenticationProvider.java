@@ -6,7 +6,7 @@ import java.util.Collections;
 import java.util.Map;
 import kr.swyp.backend.authentication.dto.KakaoSocialLoginAuthenticationToken;
 import kr.swyp.backend.authentication.dto.MemberInfo;
-import kr.swyp.backend.authentication.dto.SocialLoginDto;
+import kr.swyp.backend.authentication.dto.SocialLoginDto.Request;
 import kr.swyp.backend.authentication.service.SocialLoginService;
 import kr.swyp.backend.member.dto.MemberDetails;
 import kr.swyp.backend.member.enums.RoleType;
@@ -42,8 +42,8 @@ public class KakaoSocialLoginAuthenticationProvider implements AuthenticationPro
 
             return new UsernamePasswordAuthenticationToken(memberDetails, "",
                     memberDetails.getAuthorities());
-        } catch (IllegalArgumentException e) {
-            throw new BadCredentialsException(e.getMessage());
+        } catch (RuntimeException e) {
+            throw new BadCredentialsException("Authentication failed for Kakao login", e);
         }
     }
 
