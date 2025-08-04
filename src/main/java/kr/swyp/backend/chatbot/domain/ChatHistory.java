@@ -9,7 +9,7 @@ import org.hibernate.annotations.Comment;
 @Builder
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "GPTHistory")
+@Table(name = "GPTHISTORY")
 public class ChatHistory {
 
     @Id
