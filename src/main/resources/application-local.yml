@@ -1,14 +1,14 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/NEAR
+    url: jdbc:mysql://localhost:17254/NEAR
     username: root
-    password: 1234
+    password: test
   jpa:
     database: mysql
     database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     show-sql: true
@@ -18,18 +18,13 @@ spring:
   data:
     redis:
       host: localhost
-      password:
-      port: 6379
+      password: password
+      port: 16697
   config:
     import:
       - classpath:/application-social.yml
       - classpath:/application-aws.yml
-  ai:
-    openai:
-      api-key: ${OPENAI_API_KEY}
-      chat:
-        options:
-          temperature: 0.2
+      - classpath:/application-ai.yml
 swyp:
   jwt:
     secret: fJm76UJ3g8JL5P9tM3vUZbpuNDKVwGD8RQeMbwu2T15iZpvTM0LQCqERiXqK4Xc0

@@ -23,6 +23,7 @@ spring:
   config:
     import:
       - classpath:/application-social.yml
+      - classpath:/application-ai.yml
 
 swyp:
   jwt:

@@ -20,39 +20,28 @@ import org.hibernate.annotations.Comment;
 @Builder
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "CHAT_HISTORY")
-public class ChatHistory extends BaseEntity {
+@Table(name = "CHAT_SESSION")
+public class ChatSession extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")
     private Long id;
 
-    @Column(name = "MEMBER_ID")
-    @Comment("유저 아이디")
-    private UUID memberId;
-
-    @Column(name = "TARGET")
-    @Comment("대상")
-    private String target;
-
-    @Column(name = "TOPIC")
-    @Comment("주제")
-    private String topic;
-
-    @Column(name = "QUESTION", columnDefinition = "TEXT")
-    @Comment("질문")
-    private String question;
-    
-    @Column(name = "RESPONSE", columnDefinition = "TEXT")
-    @Comment("AI 응답")
-    private String response;
-
-    @Column(name = "SESSION_ID")
-    @Comment("채팅 세션 ID")
+    @Column(name = "SESSION_ID", unique = true)
+    @Comment("세션 고유 식별자")
     private String sessionId;
 
-    @Column(name = "MESSAGE_TYPE")
-    @Comment("메시지 타입 (USER/BOT)")
-    private String messageType;
+    @Column(name = "MEMBER_ID")
+    @Comment("사용자 아이디")
+    private UUID memberId;
+
+    @Column(name = "TITLE")
+    @Comment("채팅 세션 제목")
+    private String title;
+
+    @Column(name = "IS_ACTIVE")
+    @Comment("활성 상태")
+    @Builder.Default
+    private Boolean isActive = true;
 }
