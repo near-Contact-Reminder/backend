@@ -35,7 +35,7 @@ public class Role {
     @NotNull
     @Comment("권한 유형")
     @Enumerated(EnumType.STRING)
-    @Column(name = "ROLE_TYPE")
+    @Column(name = "ROLE_TYPE", columnDefinition = "varchar(255)")
     private RoleType roleType;
 
     /**

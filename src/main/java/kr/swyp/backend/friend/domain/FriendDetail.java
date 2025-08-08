@@ -46,9 +46,9 @@ public class FriendDetail extends BaseEntity {
     private String phone;
 
     @NotNull
-    @Column(name = "RELATION")
     @Comment("관계 (예: 친구, 가족 등)")
     @Enumerated(EnumType.STRING)
+    @Column(name = "RELATION", columnDefinition = "varchar(255)")
     private FriendRelation relation;
 
     @Column(name = "BIRTHDAY")

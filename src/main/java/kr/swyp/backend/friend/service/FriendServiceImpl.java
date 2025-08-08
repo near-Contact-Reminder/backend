@@ -48,6 +48,7 @@ public class FriendServiceImpl implements FriendService {
     private final FriendCheckingLogRepository friendCheckingLogRepository;
     private final FileRepository fileRepository;
     private final FriendDetailRepository friendDetailRepository;
+    private final ContactReminderService contactReminderService;
 
     @Override
     @Transactional
@@ -96,12 +97,26 @@ public class FriendServiceImpl implements FriendService {
                     friend.addFriendDetail(friendDetailBuilder.build());
                     friendRepository.save(friend);
 
+                    // 기념일이 있는 경우 기념일 알림 생성
                     if (friendRequest.getAnniversary() != null) {
                         FriendAnniversary friendAnniversary = friendAnniversaryRepository.save(
                                 FriendAnniversaryCreateRequest.toEntity(friend.getFriendId(),
                                         friendRequest.getAnniversary()));
                         friendResponseBuilder.anniversary(
                                 FriendAnniversaryCreateResponse.fromEntity(friendAnniversary));
+                        
+                        // 기념일에 대한 연간 알림 생성
+                        contactReminderService.createAnniversaryReminder(friend, friendAnniversary);
+                    }
+
+                    // 연락 주기에 따른 알림 생성
+                    contactReminderService.createContactReminder(friend,
+                            friendRequest.getContactFrequency());
+
+                    // 생일이 있는 경우 생일 알림 생성
+                    if (friendRequest.getBirthDay() != null) {
+                        contactReminderService.createBirthdayReminder(friend,
+                                friendRequest.getBirthDay());
                     }
 
                     if (friendRequest.getPhone() != null) {

@@ -45,8 +45,8 @@ public class AppPushToken extends BaseEntity {
 
     @NotNull
     @Comment("앱 토큰 OS 타입")
-    @Column(name = "OS_TYPE")
     @Enumerated(EnumType.STRING)
+    @Column(name = "OS_TYPE", columnDefinition = "varchar(255)")
     private AppPushTokenOsType osType;
 
     public void updateToken(String token, AppPushTokenOsType osType) {

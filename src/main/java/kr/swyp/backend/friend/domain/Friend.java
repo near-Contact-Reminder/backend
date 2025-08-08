@@ -54,8 +54,8 @@ public class Friend extends BaseEntity {
     private String name;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "FRIEND_SOURCE")
     @Comment("카카오 친구 or 연락처 친구")
+    @Column(name = "FRIEND_SOURCE", columnDefinition = "varchar(255)")
     private FriendSource friendSource;
 
     @NotNull

@@ -41,8 +41,8 @@ public class MemberSocialLoginInfo extends BaseEntity {
 
     @NotNull
     @Enumerated(EnumType.STRING)
-    @Column(name = "PROVIDER_TYPE")
     @Comment("소셜 로그인 서비스 제공자")
+    @Column(name = "PROVIDER_TYPE", columnDefinition = "varchar(255)")
     private SocialLoginProviderType providerType;
 
     @NotNull
