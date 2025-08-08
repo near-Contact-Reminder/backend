@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Map;
 import kr.swyp.backend.authentication.dto.AppleSocialLoginAuthenticationToken;
 import kr.swyp.backend.authentication.dto.MemberInfo;
+import kr.swyp.backend.authentication.dto.SocialLoginDto.Request;
 import kr.swyp.backend.authentication.service.SocialLoginService;
 import kr.swyp.backend.member.dto.MemberDetails;
 import kr.swyp.backend.member.enums.RoleType;
@@ -29,11 +30,12 @@ public class AppleSocialLoginAuthenticationProvider implements AuthenticationPro
         Map<String, Object> socialLoginInfoMap =
                 (Map<String, Object>) authentication.getPrincipal();
         try {
-            MemberInfo memberInfo = socialLoginService
-                    .getMemberInfoByIdentityTokenAndAuthorizationCodeAndProviderType(
-                            (String) socialLoginInfoMap.get("identityToken"),
-                            (String) socialLoginInfoMap.get("authorizationCode"),
-                            (SocialLoginProviderType) socialLoginInfoMap.get("providerType"));
+            Request request = Request.builder()
+                    .identityToken((String) socialLoginInfoMap.get("identityToken"))
+                    .authorizationCode((String) socialLoginInfoMap.get("authorizationCode"))
+                    .build();
+            MemberInfo memberInfo = socialLoginService.login(
+                    (SocialLoginProviderType) socialLoginInfoMap.get("providerType"), request);
 
             MemberDetails memberDetails = new MemberDetails(memberInfo.getMemberId(),
                     memberInfo.getUsername(), "", getAuthorities(memberInfo.getRoleType()));
