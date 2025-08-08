@@ -1,4 +1,4 @@
-name: Dev Deploy to AWS ECS (Docker)
+name: Dev Deploy to AWS EC2 (Docker)
 
 on:
   push:
@@ -65,10 +65,12 @@ jobs:
           docker push $DOCKER_REGISTRY_URL/$REPOSITORY_NAME:$IMAGE_TAG
           docker push $DOCKER_REGISTRY_URL/$REPOSITORY_NAME:latest
 
-      - name: Deploy to ECS
-        env:
-          ECS_CLUSTER_NAME: ${{ vars.DEV_ECS_CLUSTER_NAME }}
-          ECS_SERVICE_NAME: ${{ vars.DEV_ECS_SERVICE_NAME }}
-        run: |
-          aws ecs update-service --cluster $ECS_CLUSTER_NAME --service $ECS_SERVICE_NAME --force-new-deployment
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            sh deploy.sh
 
