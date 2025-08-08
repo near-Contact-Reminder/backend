@@ -8,4 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface MemberCheckRateRepository extends JpaRepository<MemberCheckRate, Long> {
 
     Optional<MemberCheckRate> findByMember(Member member);
+
+    void deleteByMember(Member member);
 }

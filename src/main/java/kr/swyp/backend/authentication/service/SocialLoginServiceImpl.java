@@ -67,6 +67,31 @@ public class SocialLoginServiceImpl implements SocialLoginService {
             return existingMember;
         }
 
+        // 이메일로 기존 회원 검색 (탈퇴한 회원 포함)
+        Optional<Member> maybeMemberByEmail = memberRepository.findByUsername(userInfo.getEmail());
+        if (maybeMemberByEmail.isPresent()) {
+            Member existingMember = maybeMemberByEmail.get();
+            if (existingMember.getWithdrawnAt() != null) {
+                // 탈퇴한 회원 재활성화
+                existingMember.reactivate();
+                existingMember.addRole(RoleType.USER);
+                memberRepository.save(existingMember);
+
+                // 새로운 소셜 로그인 정보 연결
+                MemberSocialLoginInfo newSocialLoginInfo = MemberSocialLoginInfo.builder()
+                        .providerId(userInfo.getProviderId())
+                        .providerType(providerType)
+                        .member(existingMember)
+                        .build();
+                memberSocialLoginInfoRepository.save(newSocialLoginInfo);
+
+                return existingMember;
+            } else {
+                // 이미 활성화된 회원이 다른 소셜 로그인으로 시도하는 경우
+                throw new IllegalStateException("이미 가입된 이메일입니다: " + userInfo.getEmail());
+            }
+        }
+
         Member newMember = Member.builder()
                 .username(userInfo.getEmail())
                 .nickname(userInfo.getNickname())

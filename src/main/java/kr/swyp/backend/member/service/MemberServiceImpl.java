@@ -50,6 +50,13 @@ public class MemberServiceImpl implements MemberService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new NoSuchElementException("해당 회원을 찾을 수 없습니다."));
 
+        // Friend 데이터 삭제 (챙길 사람들)
+        friendRepository.deleteAllByMemberId(memberId);
+
+        // MemberCheckRate 삭제
+        memberCheckRateRepository.findByMember(member)
+                .ifPresent(memberCheckRateRepository::delete);
+
         // 탈퇴 처리
         member.updateWithdrawnAt();
 

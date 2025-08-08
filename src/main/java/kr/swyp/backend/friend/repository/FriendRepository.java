@@ -49,5 +49,7 @@ public interface FriendRepository extends JpaRepository<Friend, UUID> {
             @Param("startDateTime") LocalDateTime startDateTime,
             @Param("endDateTime") LocalDateTime endDateTime);
 
+    void deleteAllByMemberId(UUID memberId);
+
 }
 
