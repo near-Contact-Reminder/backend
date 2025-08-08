@@ -60,5 +60,14 @@ public class MemberDto {
                     .build();
         }
     }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class MigrationStatusResponse {
+
+        private Boolean isMigrated;
+    }
 }
 

@@ -11,15 +11,19 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWit
 import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import kr.swyp.backend.authentication.provider.TokenProvider;
 import kr.swyp.backend.common.desciptor.ErrorDescriptor;
+import kr.swyp.backend.friend.repository.ContactReminderRepository;
 import kr.swyp.backend.member.domain.Member;
 import kr.swyp.backend.member.domain.MemberSocialLoginInfo;
 import kr.swyp.backend.member.dto.MemberDetails;
@@ -35,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.FieldDescriptor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -78,6 +83,9 @@ class MemberControllerTest {
 
     @Autowired
     private MemberSocialLoginInfoRepository socialLoginInfoRepository;
+
+    @MockBean
+    private ContactReminderRepository contactReminderRepository;
 
     private Member testMember;
     private String accessToken;
@@ -248,6 +256,70 @@ class MemberControllerTest {
                 ),
                 responseFields(
                         fieldWithPath("checkRate").description("회원의 평균 챙김 체크율 (0~100%)")
+                )
+        ));
+    }
+
+    @Test
+    @DisplayName("활성 알림이 있는 경우 마이그레이션 상태가 true를 반환해야 한다.")
+    void 활성_알림이_있는_경우_마이그레이션_상태가_true를_반환해야_한다() throws Exception {
+        // given
+        when(contactReminderRepository.findByMemberIdAndIsActiveTrue(testMember.getMemberId()))
+                .thenReturn(Collections.singletonList(null)); // Mock에서는 비어있지 않은 리스트 반환
+
+        // when
+        ResultActions result = mockMvc.perform(get("/member/reminder/migration-status")
+                        .header(AUTHORIZATION_HEADER, TOKEN_PREFIX + accessToken))
+                .andExpect(status().isOk());
+
+        // then
+        result.andExpect(jsonPath("$.isMigrated").value(true));
+
+        // docs
+        result.andDo(document("알림 마이그레이션 상태 확인 - 마이그레이션 완료",
+                "사용자가 스케줄링된 알림이 있는지 확인한다. 활성 알림이 있으면 마이그레이션 완료 상태이다.",
+                "사용자의 알림 마이그레이션 상태를 반환한다.",
+                false,
+                false,
+                preprocessRequest(prettyPrint()),
+                preprocessResponse(prettyPrint()),
+                requestHeaders(
+                        headerWithName(AUTHORIZATION_HEADER).description("발급받은 JWT")
+                ),
+                responseFields(
+                        fieldWithPath("isMigrated").description("마이그레이션 완료 여부 (true: 활성 알림 있음, false: 활성 알림 없음)")
+                )
+        ));
+    }
+
+    @Test
+    @DisplayName("활성 알림이 없는 경우 마이그레이션 상태가 false를 반환해야 한다.")
+    void 활성_알림이_없는_경우_마이그레이션_상태가_false를_반환해야_한다() throws Exception {
+        // given
+        when(contactReminderRepository.findByMemberIdAndIsActiveTrue(testMember.getMemberId()))
+                .thenReturn(Collections.emptyList());
+
+        // when
+        ResultActions result = mockMvc.perform(get("/member/reminder/migration-status")
+                        .header(AUTHORIZATION_HEADER, TOKEN_PREFIX + accessToken))
+                .andExpect(status().isOk());
+
+        // then
+        result.andExpect(jsonPath("$.isMigrated").value(false));
+
+        // docs
+        result.andDo(document("알림 마이그레이션 상태 확인 - 마이그레이션 미완료",
+                "사용자가 스케줄링된 알림이 있는지 확인한다. 활성 알림이 없으면 마이그레이션 미완료 상태이다.",
+                "사용자의 알림 마이그레이션 상태를 반환한다.",
+                false,
+                false,
+                preprocessRequest(prettyPrint()),
+                preprocessResponse(prettyPrint()),
+                requestHeaders(
+                        headerWithName(AUTHORIZATION_HEADER).description("발급받은 JWT")
+                ),
+                responseFields(
+                        fieldWithPath("isMigrated").description("마이그레이션 완료 여부 (true: 활성 알림 있음, false: 활성 알림 없음)")
                 )
         ));
     }

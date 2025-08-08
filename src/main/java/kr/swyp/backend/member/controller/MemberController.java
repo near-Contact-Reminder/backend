@@ -6,6 +6,7 @@ import kr.swyp.backend.member.dto.MemberDetails;
 import kr.swyp.backend.member.dto.MemberDto.CheckRateResponse;
 import kr.swyp.backend.member.dto.MemberDto.MemberInfoResponse;
 import kr.swyp.backend.member.dto.MemberDto.MemberWithdrawRequest;
+import kr.swyp.backend.member.dto.MemberDto.MigrationStatusResponse;
 import kr.swyp.backend.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -48,6 +49,14 @@ public class MemberController {
         // 회원 체크율을 계산하고 저장
         CheckRateResponse response = memberService.saveMemberCheckRate(memberDetails.getMemberId());
 
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/reminder/migration-status")
+    public ResponseEntity<MigrationStatusResponse> checkReminderMigrationStatus(
+            @AuthenticationPrincipal MemberDetails memberDetails) {
+        UUID memberId = memberDetails.getMemberId();
+        MigrationStatusResponse response = memberService.checkReminderMigrationStatus(memberId);
         return ResponseEntity.ok(response);
     }
 }

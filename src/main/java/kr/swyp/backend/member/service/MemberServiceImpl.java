@@ -4,6 +4,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 import kr.swyp.backend.authentication.repository.RefreshTokenRepository;
+import kr.swyp.backend.friend.repository.ContactReminderRepository;
 import kr.swyp.backend.friend.repository.FriendRepository;
 import kr.swyp.backend.member.domain.Member;
 import kr.swyp.backend.member.domain.MemberCheckRate;
@@ -12,6 +13,7 @@ import kr.swyp.backend.member.domain.MemberWithdrawalLog;
 import kr.swyp.backend.member.dto.MemberDto.CheckRateResponse;
 import kr.swyp.backend.member.dto.MemberDto.MemberInfoResponse;
 import kr.swyp.backend.member.dto.MemberDto.MemberWithdrawRequest;
+import kr.swyp.backend.member.dto.MemberDto.MigrationStatusResponse;
 import kr.swyp.backend.member.repository.MemberCheckRateRepository;
 import kr.swyp.backend.member.repository.MemberRepository;
 import kr.swyp.backend.member.repository.MemberSocialLoginInfoRepository;
@@ -30,6 +32,7 @@ public class MemberServiceImpl implements MemberService {
     private final MemberWithdrawalLogRepository memberWithdrawalLogRepository;
     private final MemberCheckRateRepository memberCheckRateRepository;
     private final FriendRepository friendRepository;
+    private final ContactReminderRepository contactReminderRepository;
 
     @Transactional(readOnly = true)
     public MemberInfoResponse getMemberInfo(UUID memberId) {
@@ -101,6 +104,18 @@ public class MemberServiceImpl implements MemberService {
 
         // 결과 반환
         return CheckRateResponse.fromEntity(result);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public MigrationStatusResponse checkReminderMigrationStatus(UUID memberId) {
+        // 해당 사용자의 활성 알림이 하나라도 있으면 마이그레이션된 것으로 간주
+        boolean isMigrated = !contactReminderRepository
+                .findByMemberIdAndIsActiveTrue(memberId).isEmpty();
+        
+        return MigrationStatusResponse.builder()
+                .isMigrated(isMigrated)
+                .build();
     }
 
 }
