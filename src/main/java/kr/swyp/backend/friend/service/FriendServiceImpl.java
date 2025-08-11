@@ -1,5 +1,6 @@
 package kr.swyp.backend.friend.service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -192,8 +193,13 @@ public class FriendServiceImpl implements FriendService {
                                     .findFirstByFriend_FriendIdAndIsCheckedTrueOrderByCreatedAtDesc(
                                             friend.getFriendId())
                                     .orElse(null);
+                    BigDecimal averageCheckRate = friendCheckingLogRepository
+                            .averageCheckedLogsByFriendId(friend.getFriendId());
+                    Integer checkRate = averageCheckRate != null
+                            ? averageCheckRate.multiply(BigDecimal.valueOf(100)).intValue()
+                            : 0;
                     return FriendListResponse.fromEntity(friend, imageUrl, fileName,
-                            friendCheckingLog);
+                            friendCheckingLog, checkRate);
                 })
                 .toList();
     }
