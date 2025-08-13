@@ -7,9 +7,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ChatHistoryRepository extends JpaRepository<ChatHistory, Long> {
 
+    List<ChatHistory> findTop5ByMemberIdAndSessionIdOrderByIdDesc(UUID memberId,String sessionId);
+
     List<ChatHistory> findTop5ByMemberIdOrderByIdDesc(UUID memberId);
-    
+
     List<ChatHistory> findBySessionIdOrderByCreatedAtAsc(String sessionId);
-    
-    List<ChatHistory> findBySessionIdAndMessageTypeOrderByCreatedAtAsc(String sessionId, String messageType);
 }

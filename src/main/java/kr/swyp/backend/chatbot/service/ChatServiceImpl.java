@@ -23,6 +23,7 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Slf4j
 @Service
@@ -40,34 +41,51 @@ public class ChatServiceImpl implements ChatService {
     @Transactional
     public ChatResponseDto ask(UUID memberId, ChatRequestDto request) {
         String message = request.getMessage();
-        log.info("[챗봇] 사용자 {}가 질문함: {}", memberId, message);
+        String sessionId = request.getSessionId();
+
+        if (!StringUtils.hasText(sessionId)) {
+            // 세션이 없으면 새 세션 생성 및 저장
+            sessionId = UUID.randomUUID().toString();
+
+            // 세션 제목은 초기 메시지로 짧게 생성
+            String title = generateSessionTitle(message);
+
+            ChatSession newSession = ChatSession.builder()
+                    .sessionId(sessionId)
+                    .memberId(memberId)
+                    .title(title)
+                    .build();
+
+            chatSessionRepository.save(newSession);
+            log.info("[챗봇] 사용자 {} 새로운 세션 생성: {}", memberId, sessionId);
+        }
+
+        log.info("[챗봇] 사용자 {} (세션 {}) 질문: {}", memberId, sessionId, message);
 
         try {
-            // 컨텍스트를 위한 최근 대화 기록 조회
+            // 최근 대화 기록 조회 (세션 단위)
             List<ChatHistory> recentHistory = chatHistoryRepository
-                    .findTop5ByMemberIdOrderByIdDesc(memberId);
-            
+                    .findTop5ByMemberIdAndSessionIdOrderByIdDesc(memberId, sessionId);
+
             String contextualPrompt = buildContextualPrompt(message, recentHistory);
-            
-            // 향상된 프롬프트로 AI 호출
+
             String responseContent = chatClient.prompt()
                     .system(chatPromptService.createMessageExtractionPrompt(message))
                     .user(contextualPrompt)
                     .advisors(new SimpleLoggerAdvisor())
                     .call()
                     .content();
-            
-            // 응답 파싱
+
             ChatExtractionResultDto result = parseResponse(responseContent);
-            
+
             // 대화 기록 저장
-            saveChatHistory(memberId, message, result);
-            
+            saveChatHistory(memberId, message, result, sessionId);
+
             return ChatResponseDto.builder()
                     .contents(result.getAnswers())
                     .sender("Near")
                     .build();
-                    
+
         } catch (Exception e) {
             log.error("[챗봇] 사용자 {} 요청 처리 중 오류 발생: {}", memberId, e.getMessage(), e);
             return createErrorResponse();
@@ -112,7 +130,7 @@ public class ChatServiceImpl implements ChatService {
         }
     }
 
-    private void saveChatHistory(UUID memberId, String message, ChatExtractionResultDto result) {
+    private void saveChatHistory(UUID memberId, String message, ChatExtractionResultDto result, String sessionId) {
         // AI 응답을 문자열로 변환 (JSON 배열을 읽기 좋은 형태로)
         String formattedResponse = String.join("\n", result.getAnswers());
         
@@ -121,6 +139,7 @@ public class ChatServiceImpl implements ChatService {
                 .target(result.getTarget())
                 .question(message)
                 .topic(result.getTopic())
+                .sessionId(sessionId)
                 .response(formattedResponse)
                 .build();
 
@@ -164,11 +183,12 @@ public class ChatServiceImpl implements ChatService {
         
         String sessionId = UUID.randomUUID().toString();
         String title = generateSessionTitle(initialMessage);
-        
+
         ChatSession session = ChatSession.builder()
                 .sessionId(sessionId)
                 .memberId(memberId)
                 .title(title)
+                .isActive(true)
                 .build();
         
         chatSessionRepository.save(session);
