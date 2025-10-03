@@ -25,13 +25,15 @@ public class ChatDto {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class ChatRequestDto {
-        private String SessionId;
+
+        private String sessionId;
         private String message; // 질문하는 메시지
     }
 
     @Getter
     @Builder
     public static class ChatResponseDto {
+
         private List<String> contents; // 응답 답변들
         private String sender; // 답변하는 사람
     }

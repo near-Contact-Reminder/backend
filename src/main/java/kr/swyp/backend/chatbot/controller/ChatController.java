@@ -11,7 +11,6 @@ import kr.swyp.backend.chatbot.dto.ChatDto.ConversationResponseDto;
 import kr.swyp.backend.chatbot.service.ChatService;
 import kr.swyp.backend.member.dto.MemberDetails;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,7 +23,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/chat")
-//@PreAuthorize("hasAuthority('USER')")
 public class ChatController {
 
     private final ChatService chatService;
@@ -36,7 +34,8 @@ public class ChatController {
     }
 
     @GetMapping("/history")
-    public List<ChatHistoryDto> getChatHistory(@AuthenticationPrincipal MemberDetails memberDetails) {
+    public List<ChatHistoryDto> getChatHistory(
+            @AuthenticationPrincipal MemberDetails memberDetails) {
         return chatService.getChatHistory(memberDetails.getMemberId());
     }
 
@@ -58,7 +57,8 @@ public class ChatController {
 
     // 사용자의 채팅 세션 목록 조회
     @GetMapping("/sessions")
-    public List<ChatSessionDto> getUserSessions(@AuthenticationPrincipal MemberDetails memberDetails) {
+    public List<ChatSessionDto> getUserSessions(
+            @AuthenticationPrincipal MemberDetails memberDetails) {
         return chatService.getUserSessions(memberDetails.getMemberId());
     }
 
