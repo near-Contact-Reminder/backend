@@ -64,6 +64,7 @@ public class ChatServiceImpl implements ChatService {
         log.info("[챗봇] 사용자 {} (세션 {}) 질문: {}", memberId, sessionId, message);
 
         try {
+
             // 최근 대화 기록 조회 (세션 단위)
             List<ChatHistory> recentHistory = chatHistoryRepository
                     .findTop5ByMemberIdAndSessionIdOrderByIdDesc(memberId, sessionId);
@@ -95,7 +96,7 @@ public class ChatServiceImpl implements ChatService {
                     .getMessage()
                     .getContent();
 
-            log.debug("[챗봇] OpenAI 응답: {}", responseContent);
+            log.info("[챗봇] OpenAI 응답: {}", responseContent);
 
             ChatExtractionResultDto result = parseResponse(responseContent);
 
@@ -259,7 +260,7 @@ public class ChatServiceImpl implements ChatService {
                     .messages(List.of(
                             OpenAiChatRequest.Message.builder()
                                     .role("system")
-                                    .content(chatPromptService.createMessageExtractionPrompt(
+                                    .content(chatPromptService.createConversationPrompt(
                                             conversationContext))
                                     .build(),
                             OpenAiChatRequest.Message.builder()
