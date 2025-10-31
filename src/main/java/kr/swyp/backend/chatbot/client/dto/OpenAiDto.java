@@ -1,5 +1,6 @@
 package kr.swyp.backend.chatbot.client.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,6 +33,7 @@ public class OpenAiDto {
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class OpenAiChatResponse {
 
         private String id;
@@ -40,18 +42,20 @@ public class OpenAiDto {
         @Getter
         @NoArgsConstructor
         @AllArgsConstructor
+        @JsonIgnoreProperties(ignoreUnknown = true)
         public static class Choice {
 
             private Message message;
-        }
 
-        @Getter
-        @NoArgsConstructor
-        @AllArgsConstructor
-        public static class Message {
+            @Getter
+            @NoArgsConstructor
+            @AllArgsConstructor
+            @JsonIgnoreProperties(ignoreUnknown = true)
+            public static class Message {
 
-            private String role;
-            private String content;
+                private String role;
+                private String content;
+            }
         }
     }
 
