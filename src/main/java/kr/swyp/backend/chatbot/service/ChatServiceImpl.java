@@ -22,6 +22,7 @@ import kr.swyp.backend.chatbot.repository.ChatHistoryRepository;
 import kr.swyp.backend.chatbot.repository.ChatSessionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -31,6 +32,9 @@ import org.springframework.util.StringUtils;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ChatServiceImpl implements ChatService {
+
+    @Value("${openai.api.key}")
+    private String apiKey;
 
     private final OpenAiClient chatClient;
     private final ChatHistoryRepository chatHistoryRepository;
@@ -111,7 +115,9 @@ public class ChatServiceImpl implements ChatService {
                 .build();
 
         // OpenFeign 호출
-        OpenAiChatResponse openAiResponse = chatClient.createChatCompletion(openAiRequest);
+        OpenAiChatResponse openAiResponse = chatClient.createChatCompletion(
+                "Bearer " + apiKey,
+                openAiRequest);
 
         // 응답 추출
         String responseContent = openAiResponse.getChoices().get(0)
@@ -265,7 +271,7 @@ public class ChatServiceImpl implements ChatService {
                     conversationContext), userMessage);
 
             log.debug("[챗봇] OpenAI 응답: {}", responseContent);
-            
+
             // AI 응답 저장
             ChatHistory botMessage = saveConversationMessage(sessionId, memberId, responseContent,
                     "BOT");
