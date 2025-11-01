@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import kr.swyp.backend.chatbot.client.dto.ChatDto.ChatResponse;
 import kr.swyp.backend.chatbot.domain.ChatHistory;
 import kr.swyp.backend.chatbot.domain.ChatSession;
 import kr.swyp.backend.chatbot.dto.ChatDto.ChatExtractionResultDto;
@@ -30,8 +31,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.test.context.ActiveProfiles;
 
 @ExtendWith(MockitoExtension.class)
@@ -39,13 +38,7 @@ import org.springframework.test.context.ActiveProfiles;
 class ChatServiceImplTest {
 
     @Mock
-    private ChatClient chatClient;
-
-    @Mock
-    private ChatClient.CallResponseSpec callResponseSpec;
-
-    @Mock
-    private ChatClient.ChatClientRequestSpec requestSpec;
+    private ChatClientService chatClientService;
 
     @Mock
     private ChatHistoryRepository chatHistoryRepository;
@@ -122,18 +115,27 @@ class ChatServiceImplTest {
                 ))
                 .build();
 
-        given(chatHistoryRepository.findTop5ByMemberIdOrderByIdDesc(memberId))
+        ChatResponse mockChatResponse = ChatResponse.builder()
+                .choices(List.of(
+                        ChatResponse.Choice.builder()
+                                .message(ChatResponse.Choice.Message.builder()
+                                        .content(aiResponseJson)
+                                        .build())
+                                .build()
+                ))
+                .build();
+
+        given(chatHistoryRepository.findTop5ByMemberIdAndSessionIdOrderByIdDesc(any(UUID.class),
+                anyString()))
                 .willReturn(List.of());
         given(chatPromptService.createMessageExtractionPrompt(anyString()))
                 .willReturn("test prompt");
-        given(chatClient.prompt()).willReturn(requestSpec);
-        given(requestSpec.system(anyString())).willReturn(requestSpec);
-        given(requestSpec.user(anyString())).willReturn(requestSpec);
-        given(requestSpec.advisors(any(SimpleLoggerAdvisor.class))).willReturn(requestSpec);
-        given(requestSpec.call()).willReturn(callResponseSpec);
-        given(callResponseSpec.content()).willReturn(aiResponseJson);
+        given(chatClientService.createChatCompletion(anyString(), any()))
+                .willReturn(mockChatResponse);
         given(objectMapper.readValue(aiResponseJson, ChatExtractionResultDto.class))
                 .willReturn(extractionResult);
+        given(chatSessionRepository.save(any(ChatSession.class)))
+                .willReturn(chatSession);
         given(chatHistoryRepository.save(any(ChatHistory.class)))
                 .willReturn(chatHistory);
 
@@ -146,6 +148,7 @@ class ChatServiceImplTest {
         assertThat(response.getSender()).isEqualTo("Near");
         assertThat(response.getContents()).contains("생일 축하해! 오늘 하루 행복한 하루 보내!");
 
+        verify(chatSessionRepository).save(any(ChatSession.class));
         verify(chatHistoryRepository).save(any(ChatHistory.class));
     }
 
@@ -181,19 +184,24 @@ class ChatServiceImplTest {
 
         String aiResponse = "오늘 날씨에 대해 구체적으로 알려드리기 어렵지만, 날씨 앱을 확인해보시는 것은 어떨까요?";
 
+        ChatResponse mockChatResponse = ChatResponse.builder()
+                .choices(List.of(
+                        ChatResponse.Choice.builder()
+                                .message(ChatResponse.Choice.Message.builder()
+                                        .content(aiResponse)
+                                        .build())
+                                .build()
+                ))
+                .build();
+        
         given(chatSessionRepository.findBySessionIdAndIsActiveTrue(sessionId))
                 .willReturn(Optional.of(chatSession));
         given(chatHistoryRepository.findBySessionIdOrderByCreatedAtAsc(sessionId))
                 .willReturn(List.of());
         given(chatPromptService.createConversationPrompt(anyString()))
                 .willReturn("conversation prompt");
-
-        // continueConversation에서는 advisors를 사용하지 않음
-        given(chatClient.prompt()).willReturn(requestSpec);
-        given(requestSpec.system(anyString())).willReturn(requestSpec);
-        given(requestSpec.user(anyString())).willReturn(requestSpec);
-        given(requestSpec.call()).willReturn(callResponseSpec);
-        given(callResponseSpec.content()).willReturn(aiResponse);
+        given(chatClientService.createChatCompletion(anyString(), any()))
+                .willReturn(mockChatResponse);
         given(chatHistoryRepository.save(any(ChatHistory.class)))
                 .willReturn(chatHistory);
 

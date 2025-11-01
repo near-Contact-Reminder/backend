@@ -34,6 +34,7 @@ public class ChatDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
+    @Builder
     public static class ChatResponse {
 
         private String id;
@@ -42,6 +43,7 @@ public class ChatDto {
         @Getter
         @NoArgsConstructor
         @AllArgsConstructor
+        @Builder
         @JsonIgnoreProperties(ignoreUnknown = true)
         public static class Choice {
 
@@ -50,6 +52,7 @@ public class ChatDto {
             @Getter
             @NoArgsConstructor
             @AllArgsConstructor
+            @Builder
             @JsonIgnoreProperties(ignoreUnknown = true)
             public static class Message {
 
