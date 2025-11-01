@@ -7,13 +7,13 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-public class OpenAiDto {
+public class ChatDto {
 
     @Getter
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class OpenAiChatRequest {
+    public static class ChatRequest {
 
         private String model;
         private List<Message> messages;
@@ -34,7 +34,7 @@ public class OpenAiDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class OpenAiChatResponse {
+    public static class ChatResponse {
 
         private String id;
         private List<Choice> choices;

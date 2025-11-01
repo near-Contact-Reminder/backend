@@ -6,9 +6,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.IntStream;
-import kr.swyp.backend.chatbot.client.OpenAiClient;
-import kr.swyp.backend.chatbot.client.dto.OpenAiDto.OpenAiChatRequest;
-import kr.swyp.backend.chatbot.client.dto.OpenAiDto.OpenAiChatResponse;
+import kr.swyp.backend.chatbot.client.dto.ChatDto.ChatRequest;
+import kr.swyp.backend.chatbot.client.dto.ChatDto.ChatResponse;
 import kr.swyp.backend.chatbot.domain.ChatHistory;
 import kr.swyp.backend.chatbot.domain.ChatSession;
 import kr.swyp.backend.chatbot.dto.ChatDto.ChatExtractionResultDto;
@@ -36,7 +35,7 @@ public class ChatServiceImpl implements ChatService {
     @Value("${openai.api.key}")
     private String apiKey;
 
-    private final OpenAiClient chatClient;
+    private final ChatClientService chatClientService;
     private final ChatHistoryRepository chatHistoryRepository;
     private final ChatSessionRepository chatSessionRepository;
     private final ChatPromptService chatPromptService;
@@ -75,9 +74,9 @@ public class ChatServiceImpl implements ChatService {
 
             String contextualPrompt = buildContextualPrompt(message, recentHistory);
 
-            // OpenAiApi 호출
-            String responseContent = callOpenAiApi(chatPromptService.createMessageExtractionPrompt(
-                    message), contextualPrompt);
+            // ChatClientApi 호출
+            String responseContent = callChatClientApi(
+                    chatPromptService.createMessageExtractionPrompt(message), contextualPrompt);
 
             log.info("[챗봇] OpenAI 응답: {}", responseContent);
 
@@ -97,16 +96,16 @@ public class ChatServiceImpl implements ChatService {
         }
     }
 
-    private String callOpenAiApi(String chatPromptService, String contextualPrompt) {
+    private String callChatClientApi(String chatPromptService, String contextualPrompt) {
         // Request DTO 생성
-        OpenAiChatRequest openAiRequest = OpenAiChatRequest.builder()
+        ChatRequest chatRequest = ChatRequest.builder()
                 .model("gpt-4")
                 .messages(List.of(
-                        OpenAiChatRequest.Message.builder()
+                        ChatRequest.Message.builder()
                                 .role("system")
                                 .content(chatPromptService)
                                 .build(),
-                        OpenAiChatRequest.Message.builder()
+                        ChatRequest.Message.builder()
                                 .role("user")
                                 .content(contextualPrompt)
                                 .build()
@@ -115,12 +114,12 @@ public class ChatServiceImpl implements ChatService {
                 .build();
 
         // OpenFeign 호출
-        OpenAiChatResponse openAiResponse = chatClient.createChatCompletion(
+        ChatResponse chatResponse = chatClientService.createChatCompletion(
                 "Bearer " + apiKey,
-                openAiRequest);
+                chatRequest);
 
         // 응답 추출
-        String responseContent = openAiResponse.getChoices().get(0)
+        String responseContent = chatResponse.getChoices().get(0)
                 .getMessage()
                 .getContent();
         return responseContent;
@@ -266,8 +265,8 @@ public class ChatServiceImpl implements ChatService {
 
             String conversationContext = buildConversationContext(sessionHistory, userMessage);
 
-            // OpenAiApi 호출
-            String responseContent = callOpenAiApi(chatPromptService.createConversationPrompt(
+            // ChatClientApi 호출
+            String responseContent = callChatClientApi(chatPromptService.createConversationPrompt(
                     conversationContext), userMessage);
 
             log.debug("[챗봇] OpenAI 응답: {}", responseContent);
