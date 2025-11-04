@@ -14,10 +14,14 @@ import kr.swyp.backend.friend.enums.FriendSource;
 import kr.swyp.backend.friend.repository.FriendRepository;
 import kr.swyp.backend.member.domain.Member;
 import kr.swyp.backend.member.domain.MemberCheckRate;
+import kr.swyp.backend.member.domain.MemberTermsAgreement;
 import kr.swyp.backend.member.dto.MemberDto.MemberWithdrawRequest;
 import kr.swyp.backend.member.enums.RoleType;
 import kr.swyp.backend.member.repository.MemberCheckRateRepository;
 import kr.swyp.backend.member.repository.MemberRepository;
+import kr.swyp.backend.member.repository.MemberTermsAgreementRepository;
+import kr.swyp.backend.term.domain.Term;
+import kr.swyp.backend.term.repository.TermRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +45,12 @@ class MemberServiceImplTest {
 
     @Autowired
     private MemberCheckRateRepository memberCheckRateRepository;
+
+    @Autowired
+    private MemberTermsAgreementRepository memberTermsAgreementRepository;
+
+    @Autowired
+    private TermRepository termRepository;
 
     @Test
     @DisplayName("회원탈퇴를 할 수 있어야 한다.")
@@ -144,6 +154,53 @@ class MemberServiceImplTest {
         // then
         List<Friend> friends = friendRepository.findAllByMemberId(member.getMemberId());
         assertThat(friends).isEmpty();
+    }
+
+    @Test
+    @DisplayName("회원 탈퇴 시 약관 동의 정보가 삭제되어야 한다.")
+    void 회원_탈퇴_시_약관_동의_정보가_삭제되어야_한다() {
+        // given
+        String username = "test@test.com";
+        String nickname = "test";
+        Member member = createMember(username, nickname);
+
+        // 약관 생성
+        Term term1 = Term.builder()
+                .title("서비스 이용 약관")
+                .version("1.0")
+                .isRequired(true)
+                .build();
+        Term term2 = Term.builder()
+                .title("개인정보 수집 및 이용 동의서")
+                .version("1.0")
+                .isRequired(true)
+                .build();
+        termRepository.saveAll(List.of(term1, term2));
+
+        // 약관 동의 생성
+        MemberTermsAgreement agreement1 = MemberTermsAgreement.builder()
+                .memberId(member.getMemberId())
+                .termsId(term1.getId())
+                .isAgreed(true)
+                .build();
+        MemberTermsAgreement agreement2 = MemberTermsAgreement.builder()
+                .memberId(member.getMemberId())
+                .termsId(term2.getId())
+                .isAgreed(true)
+                .build();
+        memberTermsAgreementRepository.saveAll(List.of(agreement1, agreement2));
+
+        // when
+        memberService.withdrawMember(member.getMemberId(),
+                MemberWithdrawRequest.builder()
+                        .reasonType("test")
+                        .customReason("test")
+                        .build());
+
+        // then
+        List<MemberTermsAgreement> agreements =
+                memberTermsAgreementRepository.findAllByMemberId(member.getMemberId());
+        assertThat(agreements).isEmpty();
     }
 
     private Member createMember(String username, String nickname) {
