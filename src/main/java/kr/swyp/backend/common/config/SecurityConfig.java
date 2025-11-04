@@ -79,6 +79,7 @@ public class SecurityConfig {
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/error/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
+                        .requestMatchers("/terms").permitAll()
                         .anyRequest().authenticated())
 
                 .addFilterBefore(usernamePasswordAuthenticationFilter(),
