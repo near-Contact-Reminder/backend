@@ -50,3 +50,6 @@ src/main/resources/application-aws.yml
 
 ### Claude Code ###
 .claude/
+
+### Firebase ###
+src/main/resources/firebase.json

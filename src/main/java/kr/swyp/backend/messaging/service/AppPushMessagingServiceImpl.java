@@ -24,6 +24,9 @@ public class AppPushMessagingServiceImpl implements AppPushMessagingService {
     @Override
     @Transactional
     public void registerDevice(UUID memberId, RegisterAppPushTokenRequest request) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new NoSuchElementException("해당 회원을 찾을 수 없습니다."));
+
         Optional<AppPushToken> maybeAppPushToken = appPushTokenRepository.findByMemberId(memberId);
 
         if (maybeAppPushToken.isEmpty()) {
@@ -34,16 +37,17 @@ public class AppPushMessagingServiceImpl implements AppPushMessagingService {
                     .build();
             appPushTokenRepository.save(appPushToken);
 
-            Member member = memberRepository.findById(memberId)
-                    .orElseThrow(() -> new NoSuchElementException("해당 회원을 찾을 수 없습니다."));
             member.updateNotificationAgreedAt(LocalDateTime.now());
-            memberRepository.save(member);
         } else {
             // 항목이 존재하면 토큰을 업데이트한다.
             AppPushToken appPushToken = maybeAppPushToken.get();
             appPushToken.updateToken(request.getToken(), request.getOsType());
             appPushTokenRepository.save(appPushToken);
         }
+
+        // Member 엔티티의 fcmToken도 동기화 (NotificationScheduler에서 사용)
+        member.updateFcmToken(request.getToken());
+        memberRepository.save(member);
     }
 
     @Override
@@ -54,5 +58,7 @@ public class AppPushMessagingServiceImpl implements AppPushMessagingService {
                 .orElseThrow(() -> new NoSuchElementException("해당 회원을 찾을 수 없습니다."));
 
         member.updateNotificationAgreedAt(null);
+        member.updateFcmToken(null);
+        memberRepository.save(member);
     }
 }

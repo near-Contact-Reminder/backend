@@ -45,6 +45,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-configuration-processor'
     implementation 'software.amazon.awssdk:s3:2.31.16'
     implementation 'io.micrometer:micrometer-registry-prometheus'
+    implementation 'com.google.firebase:firebase-admin:9.3.0'
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'com.mysql:mysql-connector-j'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
