@@ -888,6 +888,200 @@ class FriendControllerTest {
         ));
     }
 
+    @Test
+    @DisplayName("같은 친구가 여러 기념일을 가져도 타입별로 하나만 반환해야 한다.")
+    void 같은_친구가_여러_기념일을_가져도_타입별로_하나만_반환해야_한다() throws Exception {
+        // given
+        LocalDate now = LocalDate.now();
+
+        // 새로운 친구 생성 (기존 testFriend와 분리)
+        Friend friend = friendRepository.save(
+                Friend.builder()
+                        .name("기념일테스트친구")
+                        .friendSource(FriendSource.KAKAO)
+                        .contactFrequency(FriendContactFrequency.builder()
+                                .contactWeek(FriendContactWeek.EVERY_MONTH)
+                                .dayOfWeek(DayOfWeek.MONDAY)
+                                .build())
+                        .alarmTriggerCount(0)
+                        .position(1)
+                        .nextContactAt(now.plusMonths(1)) // 다음 달로 설정하여 MESSAGE 타입 제외
+                        .memberId(testMember.getMemberId())
+                        .build()
+        );
+
+        // 같은 친구에게 여러 기념일 추가 (이번 달)
+        FriendAnniversary anniversary1 = FriendAnniversary.builder()
+                .friendId(friend.getFriendId())
+                .title("첫 번째 기념일")
+                .date(now.withDayOfMonth(10))
+                .build();
+        friendAnniversaryRepository.save(anniversary1);
+
+        FriendAnniversary anniversary2 = FriendAnniversary.builder()
+                .friendId(friend.getFriendId())
+                .title("두 번째 기념일")
+                .date(now.withDayOfMonth(15))
+                .build();
+        friendAnniversaryRepository.save(anniversary2);
+
+        FriendAnniversary anniversary3 = FriendAnniversary.builder()
+                .friendId(friend.getFriendId())
+                .title("세 번째 기념일")
+                .date(now.withDayOfMonth(20))
+                .build();
+        friendAnniversaryRepository.save(anniversary3);
+
+        // when
+        ResultActions result = mockMvc.perform(get(url + "/monthly")
+                        .header(AUTHORIZATION_HEADER,
+                                AUTHORIZATION_VALUE_PREFIX + createAccessToken(testMember.getMemberId()))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray());
+
+        // then - ANNIVERSARY 타입은 친구당 하나만 있어야 함 (배열 크기 확인)
+        result.andExpect(jsonPath("$[?(@.friendId=='" + friend.getFriendId()
+                + "' && @.type=='ANNIVERSARY')]").isArray())
+                .andExpect(jsonPath("$.length()").value(
+                        org.hamcrest.Matchers.greaterThanOrEqualTo(1)));
+
+        // 해당 친구의 ANNIVERSARY 타입 개수가 정확히 1개인지 확인
+        String responseBody = result.andReturn().getResponse().getContentAsString();
+        long anniversaryCount = com.jayway.jsonpath.JsonPath.parse(responseBody)
+                .<net.minidev.json.JSONArray>read(
+                        "$[?(@.friendId=='" + friend.getFriendId() + "' && @.type=='ANNIVERSARY')]")
+                .size();
+        org.assertj.core.api.Assertions.assertThat(anniversaryCount).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("같은 친구가 생일과 기념일이 있으면 각 타입별로 하나씩 반환해야 한다.")
+    void 같은_친구가_생일과_기념일이_있으면_각_타입별로_하나씩_반환해야_한다() throws Exception {
+        // given
+        LocalDate now = LocalDate.now();
+
+        // 새로운 친구 생성
+        Friend friend = friendRepository.save(
+                Friend.builder()
+                        .name("복합테스트친구")
+                        .friendSource(FriendSource.KAKAO)
+                        .contactFrequency(FriendContactFrequency.builder()
+                                .contactWeek(FriendContactWeek.EVERY_WEEK)
+                                .dayOfWeek(DayOfWeek.MONDAY)
+                                .build())
+                        .alarmTriggerCount(0)
+                        .position(2)
+                        .nextContactAt(now.withDayOfMonth(Math.min(20, now.lengthOfMonth())))
+                        .memberId(testMember.getMemberId())
+                        .build()
+        );
+
+        // 생일 설정 (이번 달)
+        FriendDetail friendDetail = FriendDetail.builder()
+                .friend(friend)
+                .relation(FriendRelation.FRIEND)
+                .birthday(now.withDayOfMonth(5))
+                .memo("테스트")
+                .build();
+        friend.addFriendDetail(friendDetail);
+        friendDetailRepository.save(friendDetail);
+
+        // 기념일 추가 (이번 달)
+        FriendAnniversary anniversary = FriendAnniversary.builder()
+                .friendId(friend.getFriendId())
+                .title("기념일")
+                .date(now.withDayOfMonth(15))
+                .build();
+        friendAnniversaryRepository.save(anniversary);
+
+        // when
+        ResultActions result = mockMvc.perform(get(url + "/monthly")
+                        .header(AUTHORIZATION_HEADER,
+                                AUTHORIZATION_VALUE_PREFIX + createAccessToken(testMember.getMemberId()))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray());
+
+        // then - 같은 친구에 대해 BIRTHDAY, ANNIVERSARY, MESSAGE 각각 하나씩 있어야 함
+        String friendId = friend.getFriendId().toString();
+
+        String responseBody = result.andReturn().getResponse().getContentAsString();
+        long birthdayCount = com.jayway.jsonpath.JsonPath.parse(responseBody)
+                .<net.minidev.json.JSONArray>read(
+                        "$[?(@.friendId=='" + friendId + "' && @.type=='BIRTHDAY')]")
+                .size();
+        long anniversaryCount = com.jayway.jsonpath.JsonPath.parse(responseBody)
+                .<net.minidev.json.JSONArray>read(
+                        "$[?(@.friendId=='" + friendId + "' && @.type=='ANNIVERSARY')]")
+                .size();
+        long messageCount = com.jayway.jsonpath.JsonPath.parse(responseBody)
+                .<net.minidev.json.JSONArray>read(
+                        "$[?(@.friendId=='" + friendId + "' && @.type=='MESSAGE')]")
+                .size();
+
+        org.assertj.core.api.Assertions.assertThat(birthdayCount).isEqualTo(1);
+        org.assertj.core.api.Assertions.assertThat(anniversaryCount).isEqualTo(1);
+        org.assertj.core.api.Assertions.assertThat(messageCount).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("여러 기념일 중 가장 가까운 날짜가 선택되어야 한다.")
+    void 여러_기념일_중_가장_가까운_날짜가_선택되어야_한다() throws Exception {
+        // given
+        LocalDate now = LocalDate.now();
+        int lastDay = now.lengthOfMonth();
+
+        // 새로운 친구 생성
+        Friend friend = friendRepository.save(
+                Friend.builder()
+                        .name("날짜선택테스트친구")
+                        .friendSource(FriendSource.KAKAO)
+                        .contactFrequency(FriendContactFrequency.builder()
+                                .contactWeek(FriendContactWeek.EVERY_MONTH)
+                                .dayOfWeek(DayOfWeek.MONDAY)
+                                .build())
+                        .alarmTriggerCount(0)
+                        .position(3)
+                        .nextContactAt(now.plusMonths(1))
+                        .memberId(testMember.getMemberId())
+                        .build()
+        );
+
+        // 같은 친구에게 여러 기념일 추가 (가장 빠른 날짜: 5일)
+        LocalDate earlyDate = now.withDayOfMonth(Math.min(5, lastDay));
+        FriendAnniversary earlyAnniversary = FriendAnniversary.builder()
+                .friendId(friend.getFriendId())
+                .title("이른 기념일")
+                .date(earlyDate)
+                .build();
+        friendAnniversaryRepository.save(earlyAnniversary);
+
+        LocalDate lateDate = now.withDayOfMonth(Math.min(25, lastDay));
+        FriendAnniversary lateAnniversary = FriendAnniversary.builder()
+                .friendId(friend.getFriendId())
+                .title("늦은 기념일")
+                .date(lateDate)
+                .build();
+        friendAnniversaryRepository.save(lateAnniversary);
+
+        // when
+        ResultActions result = mockMvc.perform(get(url + "/monthly")
+                        .header(AUTHORIZATION_HEADER,
+                                AUTHORIZATION_VALUE_PREFIX + createAccessToken(testMember.getMemberId()))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray());
+
+        // then - ANNIVERSARY 타입은 하나만 반환되어야 함
+        String responseBody = result.andReturn().getResponse().getContentAsString();
+        net.minidev.json.JSONArray anniversaries = com.jayway.jsonpath.JsonPath.parse(responseBody)
+                .read("$[?(@.friendId=='" + friend.getFriendId() + "' && @.type=='ANNIVERSARY')]");
+
+        // 중복 제거 검증: 기념일이 여러 개 있어도 ANNIVERSARY 타입은 1개만 반환
+        org.assertj.core.api.Assertions.assertThat(anniversaries.size()).isEqualTo(1);
+    }
+
     private String createAccessToken(UUID memberId) {
         List<GrantedAuthority> authorities = Collections.singletonList(
                 new SimpleGrantedAuthority(RoleType.USER.name()));
