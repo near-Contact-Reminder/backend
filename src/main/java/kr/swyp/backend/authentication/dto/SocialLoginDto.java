@@ -187,5 +187,25 @@ public class SocialLoginDto {
 
         }
     }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class UserInfo {
+        private String providerId;
+        private String email;
+        private String nickname;
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class Request {
+        private String accessToken;
+        private String identityToken;
+        private String authorizationCode;
+    }
 }
 

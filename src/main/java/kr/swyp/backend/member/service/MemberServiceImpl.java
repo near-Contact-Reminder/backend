@@ -15,6 +15,7 @@ import kr.swyp.backend.member.dto.MemberDto.MemberWithdrawRequest;
 import kr.swyp.backend.member.repository.MemberCheckRateRepository;
 import kr.swyp.backend.member.repository.MemberRepository;
 import kr.swyp.backend.member.repository.MemberSocialLoginInfoRepository;
+import kr.swyp.backend.member.repository.MemberTermsAgreementRepository;
 import kr.swyp.backend.member.repository.MemberWithdrawalLogRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,7 @@ public class MemberServiceImpl implements MemberService {
     private final MemberWithdrawalLogRepository memberWithdrawalLogRepository;
     private final MemberCheckRateRepository memberCheckRateRepository;
     private final FriendRepository friendRepository;
+    private final MemberTermsAgreementRepository memberTermsAgreementRepository;
 
     @Transactional(readOnly = true)
     public MemberInfoResponse getMemberInfo(UUID memberId) {
@@ -49,6 +51,16 @@ public class MemberServiceImpl implements MemberService {
     public void withdrawMember(UUID memberId, MemberWithdrawRequest request) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new NoSuchElementException("해당 회원을 찾을 수 없습니다."));
+
+        // Friend 데이터 삭제 (챙길 사람들)
+        friendRepository.deleteAllByMemberId(memberId);
+
+        // MemberCheckRate 삭제
+        memberCheckRateRepository.findByMember(member)
+                .ifPresent(memberCheckRateRepository::delete);
+
+        // 약관 동의 정보 삭제
+        memberTermsAgreementRepository.deleteAllByMemberId(memberId);
 
         // 탈퇴 처리
         member.updateWithdrawnAt();

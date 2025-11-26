@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Map;
 import kr.swyp.backend.authentication.dto.KakaoSocialLoginAuthenticationToken;
 import kr.swyp.backend.authentication.dto.MemberInfo;
+import kr.swyp.backend.authentication.dto.SocialLoginDto.Request;
 import kr.swyp.backend.authentication.service.SocialLoginService;
 import kr.swyp.backend.member.dto.MemberDetails;
 import kr.swyp.backend.member.enums.RoleType;
@@ -30,17 +31,19 @@ public class KakaoSocialLoginAuthenticationProvider implements AuthenticationPro
         Map<String, Object> socialLoginInfoMap =
                 (Map<String, Object>) authentication.getPrincipal();
         try {
-            MemberInfo memberInfo = socialLoginService.getMemberInfoByAccessKeyAndProviderType(
-                    (String) socialLoginInfoMap.get("accessToken"),
-                    (SocialLoginProviderType) socialLoginInfoMap.get("providerType"));
+            Request request = Request.builder()
+                    .accessToken((String) socialLoginInfoMap.get("accessToken"))
+                    .build();
+            MemberInfo memberInfo = socialLoginService.login(
+                    (SocialLoginProviderType) socialLoginInfoMap.get("providerType"), request);
 
             MemberDetails memberDetails = new MemberDetails(memberInfo.getMemberId(),
                     memberInfo.getUsername(), "", getAuthorities(memberInfo.getRoleType()));
 
             return new UsernamePasswordAuthenticationToken(memberDetails, "",
                     memberDetails.getAuthorities());
-        } catch (IllegalArgumentException | JsonProcessingException e) {
-            throw new BadCredentialsException(e.getMessage());
+        } catch (RuntimeException e) {
+            throw new BadCredentialsException("Authentication failed for Kakao login", e);
         }
     }
 
