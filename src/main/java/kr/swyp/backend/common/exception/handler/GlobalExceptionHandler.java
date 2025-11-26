@@ -45,6 +45,13 @@ public class GlobalExceptionHandler {
         return responseException("BAD_REQUEST", e.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorInfo> handleIllegalStateException(
+            IllegalStateException e) {
+        log.info("잘못된 상태: {}", e.getMessage());
+        return responseException("INVALID_STATE", e.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(MethodNotAllowedException.class)
     public ResponseEntity<ErrorInfo> handleMethodNotAllowedException(
             MethodNotAllowedException e) {

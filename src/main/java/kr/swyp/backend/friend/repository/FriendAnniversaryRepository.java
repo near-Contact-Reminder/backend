@@ -29,4 +29,15 @@ public interface FriendAnniversaryRepository extends JpaRepository<FriendAnniver
             """)
     List<FriendAnniversary> findAllAnniversaryByCheckingLogIdList(
             @Param("checkingLogIdList") List<Long> checkingLogIdList);
+
+    /**
+     * 오늘 날짜(월-일)의 기념일을 가진 항목들 조회 (알림 대상).
+     * 연도는 무시하고 월-일만 비교.
+     */
+    @Query("""
+            SELECT fa
+            FROM FriendAnniversary fa
+            WHERE MONTH(fa.date) = :month AND DAY(fa.date) = :day
+            """)
+    List<FriendAnniversary> findAllByMonthAndDay(@Param("month") int month, @Param("day") int day);
 }

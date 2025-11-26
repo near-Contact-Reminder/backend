@@ -73,6 +73,10 @@ public class Member extends BaseEntity implements UserDetails {
     @Column(name = "WITHDRAWN_AT")
     private LocalDateTime withdrawnAt;
 
+    @Comment("FCM 토큰")
+    @Column(name = "FCM_TOKEN")
+    private String fcmToken;
+
     @Default
     @OneToMany(mappedBy = "member", fetch = FetchType.EAGER,
             cascade = CascadeType.ALL, orphanRemoval = true)
@@ -124,5 +128,9 @@ public class Member extends BaseEntity implements UserDetails {
     public void reactivate() {
         this.withdrawnAt = null;
         this.isActive = true;
+    }
+
+    public void updateFcmToken(String fcmToken) {
+        this.fcmToken = fcmToken;
     }
 }
