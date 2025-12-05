@@ -37,3 +37,6 @@ swyp:
       bucket-name: test-bucket
       access-key: test
       secret-key: test
+  fcm:
+    enabled: false
+    credentials-path: classpath:firebase-test.json

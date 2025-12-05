@@ -4,7 +4,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
@@ -418,12 +420,23 @@ public class FriendServiceImpl implements FriendService {
                 .toList();
 
         // 결과 합치기
-        List<FriendNearResponse> result = new ArrayList<>();
-        result.addAll(birthdayResponses);
-        result.addAll(anniversaryResponses);
-        result.addAll(messageResponse);
+        List<FriendNearResponse> allResponses = new ArrayList<>();
+        allResponses.addAll(birthdayResponses);
+        allResponses.addAll(anniversaryResponses);
+        allResponses.addAll(messageResponse);
 
-        return result;
+        // friendId + type 조합으로 중복 제거 (같은 조합 중 가장 가까운 날짜 선택)
+        Map<String, FriendNearResponse> uniqueMap = new LinkedHashMap<>();
+        for (FriendNearResponse response : allResponses) {
+            String key = response.getFriendId() + "_" + response.getType();
+            FriendNearResponse existing = uniqueMap.get(key);
+            if (existing == null || response.getNextContactAt()
+                    .isBefore(existing.getNextContactAt())) {
+                uniqueMap.put(key, response);
+            }
+        }
+
+        return new ArrayList<>(uniqueMap.values());
     }
 
     @Override
@@ -505,13 +518,23 @@ public class FriendServiceImpl implements FriendService {
                         .nextContactAt(friend.getNextContactAt())
                         .build()).toList();
 
-        // 두 리스트 합치기
-        List<FriendNearResponse> result = new ArrayList<>();
-        result.addAll(birthdayResponses);
-        result.addAll(anniversaryResponses);
-        result.addAll(messageResponse);
+        // 결과 합치기
+        List<FriendNearResponse> allResponses = new ArrayList<>();
+        allResponses.addAll(birthdayResponses);
+        allResponses.addAll(anniversaryResponses);
+        allResponses.addAll(messageResponse);
 
-        return result;
+        // friendId + type 조합으로 중복 제거 (같은 조합 중 가장 가까운 날짜 선택)
+        Map<String, FriendNearResponse> uniqueMap = new LinkedHashMap<>();
+        for (FriendNearResponse response : allResponses) {
+            String key = response.getFriendId() + "_" + response.getType();
+            FriendNearResponse existing = uniqueMap.get(key);
+            if (existing == null || response.getNextContactAt().isBefore(existing.getNextContactAt())) {
+                uniqueMap.put(key, response);
+            }
+        }
+
+        return new ArrayList<>(uniqueMap.values());
     }
 }
 

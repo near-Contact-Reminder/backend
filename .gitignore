@@ -54,3 +54,6 @@ src/main/resources/application-ai.yml
 
 ### Claude Code ###
 .claude/
+
+### Firebase ###
+src/main/resources/firebase.json

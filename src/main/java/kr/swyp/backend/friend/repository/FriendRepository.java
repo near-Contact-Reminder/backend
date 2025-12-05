@@ -51,5 +51,10 @@ public interface FriendRepository extends JpaRepository<Friend, UUID> {
 
     void deleteAllByMemberId(UUID memberId);
 
+    /**
+     * 특정 날짜에 연락해야 할 친구 목록 조회 (알림 대상).
+     */
+    List<Friend> findAllByNextContactAt(LocalDate targetDate);
+
 }
 
