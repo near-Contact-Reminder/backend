@@ -51,6 +51,11 @@ jobs:
       - name: Set Firebase Credentials
         run: |
           echo "${{ secrets.FIREBASE_CREDENTIALS }}" | base64 --decode > src/main/resources/firebase.json
+          if [ ! -s src/main/resources/firebase.json ]; then
+            echo "Error: firebase.json is empty. Check FIREBASE_CREDENTIALS secret."
+            exit 1
+          fi
+          echo "firebase.json size: $(wc -c < src/main/resources/firebase.json) bytes"
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew

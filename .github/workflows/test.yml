@@ -46,7 +46,13 @@ jobs:
 
       - name: Set Firebase Credentials
         run: |
-          echo "${{ secrets.FIREBASE_CREDENTIALS }}" | base64 --decode > src/main/resources/firebase.json
+          if [ -z "${{ secrets.FIREBASE_CREDENTIALS }}" ]; then
+            echo "FIREBASE_CREDENTIALS secret is empty, creating dummy file"
+            echo '{}' > src/main/resources/firebase.json
+          else
+            echo "${{ secrets.FIREBASE_CREDENTIALS }}" | base64 --decode > src/main/resources/firebase.json
+          fi
+          echo "firebase.json size: $(wc -c < src/main/resources/firebase.json) bytes"
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
