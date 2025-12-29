@@ -3,6 +3,7 @@ package kr.swyp.backend.notification.controller;
 import static com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
@@ -10,6 +11,9 @@ import static org.springframework.restdocs.operation.preprocess.Preprocessors.pr
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
+import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
+import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -22,8 +26,11 @@ import kr.swyp.backend.member.domain.Member;
 import kr.swyp.backend.member.dto.MemberDetails;
 import kr.swyp.backend.member.enums.RoleType;
 import kr.swyp.backend.member.repository.MemberRepository;
+import kr.swyp.backend.notification.domain.Notification;
 import kr.swyp.backend.notification.dto.ForceSendNotificationRequest;
 import kr.swyp.backend.notification.dto.SendTestNotificationRequest;
+import kr.swyp.backend.notification.enums.NotificationType;
+import kr.swyp.backend.notification.repository.NotificationRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -63,6 +70,9 @@ class NotificationControllerTest {
 
     @Autowired
     private MemberRepository memberRepository;
+
+    @Autowired
+    private NotificationRepository notificationRepository;
 
     private Member testMember;
 
@@ -406,6 +416,194 @@ class NotificationControllerTest {
 
         // then
         result.andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("알림 목록을 조회할 수 있어야 한다.")
+    void 알림_목록을_조회할_수_있어야_한다() throws Exception {
+        // given
+        UUID memberId = testMember.getMemberId();
+        String accessToken = createAccessToken(memberId);
+
+        // 테스트 알림 생성
+        notificationRepository.save(Notification.builder()
+                .memberId(memberId)
+                .friendId(UUID.randomUUID())
+                .type(NotificationType.FRIEND_REMINDER)
+                .title("친구 챙기기")
+                .body("철수님과 연락할 시간이에요!")
+                .build());
+
+        notificationRepository.save(Notification.builder()
+                .memberId(memberId)
+                .type(NotificationType.ANNIVERSARY)
+                .title("친구 챙기기")
+                .body("영희님 생일이에요!")
+                .build());
+
+        // when
+        ResultActions result = mockMvc.perform(get(url)
+                .header(AUTHORIZATION_HEADER, AUTHORIZATION_VALUE_PREFIX + accessToken));
+
+        // then
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].type").exists())
+                .andExpect(jsonPath("$[0].title").exists())
+                .andExpect(jsonPath("$[0].body").exists())
+                .andExpect(jsonPath("$[0].isRead").value(false));
+
+        // docs
+        result.andDo(document("알림 목록 조회",
+                "사용자의 알림 목록을 조회한다.",
+                "알림 목록 조회",
+                false,
+                false,
+                preprocessRequest(prettyPrint()),
+                preprocessResponse(prettyPrint()),
+                requestHeaders(
+                        headerWithName(AUTHORIZATION_HEADER).description("발급받은 JWT 토큰")),
+                queryParameters(
+                        parameterWithName("unreadOnly").description("읽지 않은 알림만 조회 (기본값: false)").optional()
+                ),
+                responseFields(
+                        fieldWithPath("[].notificationId").description("알림 ID"),
+                        fieldWithPath("[].friendId").description("친구 ID (없을 수 있음)").optional(),
+                        fieldWithPath("[].type").description("알림 타입 (FRIEND_REMINDER, ANNIVERSARY 등)"),
+                        fieldWithPath("[].title").description("알림 제목"),
+                        fieldWithPath("[].body").description("알림 내용"),
+                        fieldWithPath("[].isRead").description("읽음 여부"),
+                        fieldWithPath("[].createdAt").description("생성 시각")
+                )));
+    }
+
+    @Test
+    @DisplayName("읽지 않은 알림만 조회할 수 있어야 한다.")
+    void 읽지_않은_알림만_조회할_수_있어야_한다() throws Exception {
+        // given
+        UUID memberId = testMember.getMemberId();
+        String accessToken = createAccessToken(memberId);
+
+        // 읽음 처리된 알림
+        Notification readNotification = notificationRepository.save(Notification.builder()
+                .memberId(memberId)
+                .type(NotificationType.FRIEND_REMINDER)
+                .title("읽은 알림")
+                .body("이미 읽은 알림입니다.")
+                .build());
+        readNotification.markAsRead();
+        notificationRepository.save(readNotification);
+
+        // 읽지 않은 알림
+        notificationRepository.save(Notification.builder()
+                .memberId(memberId)
+                .type(NotificationType.ANNIVERSARY)
+                .title("안 읽은 알림")
+                .body("아직 안 읽은 알림입니다.")
+                .build());
+
+        // when
+        ResultActions result = mockMvc.perform(get(url)
+                .header(AUTHORIZATION_HEADER, AUTHORIZATION_VALUE_PREFIX + accessToken)
+                .param("unreadOnly", "true"));
+
+        // then
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].title").value("안 읽은 알림"));
+    }
+
+    @Test
+    @DisplayName("알림을 읽음 처리할 수 있어야 한다.")
+    void 알림을_읽음_처리할_수_있어야_한다() throws Exception {
+        // given
+        UUID memberId = testMember.getMemberId();
+        String accessToken = createAccessToken(memberId);
+
+        Notification notification = notificationRepository.save(Notification.builder()
+                .memberId(memberId)
+                .type(NotificationType.FRIEND_REMINDER)
+                .title("알림 제목")
+                .body("알림 내용")
+                .build());
+
+        // when
+        ResultActions result = mockMvc.perform(post(url + "/{notificationId}/read", notification.getNotificationId())
+                .header(AUTHORIZATION_HEADER, AUTHORIZATION_VALUE_PREFIX + accessToken));
+
+        // then
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("알림을 읽음 처리하였습니다."))
+                .andExpect(jsonPath("$.notificationId").value(notification.getNotificationId().toString()));
+
+        // docs
+        result.andDo(document("알림 읽음 처리",
+                "특정 알림을 읽음 처리한다.",
+                "알림 읽음 처리",
+                false,
+                false,
+                preprocessRequest(prettyPrint()),
+                preprocessResponse(prettyPrint()),
+                requestHeaders(
+                        headerWithName(AUTHORIZATION_HEADER).description("발급받은 JWT 토큰")),
+                pathParameters(
+                        parameterWithName("notificationId").description("알림 ID")
+                ),
+                responseFields(
+                        fieldWithPath("message").description("처리 완료 메시지"),
+                        fieldWithPath("notificationId").description("읽음 처리된 알림 ID")
+                )));
+    }
+
+    @Test
+    @DisplayName("다른 회원의 알림은 읽음 처리할 수 없어야 한다.")
+    void 다른_회원의_알림은_읽음_처리할_수_없어야_한다() throws Exception {
+        // given
+        UUID memberId = testMember.getMemberId();
+        String accessToken = createAccessToken(memberId);
+
+        // 다른 회원 생성
+        Member otherMember = memberRepository.save(
+                Member.builder()
+                        .username("other@example.com")
+                        .password("encoded_password")
+                        .nickname("다른유저")
+                        .isActive(true)
+                        .build()
+        );
+
+        // 다른 회원의 알림 생성
+        Notification otherNotification = notificationRepository.save(Notification.builder()
+                .memberId(otherMember.getMemberId())
+                .type(NotificationType.FRIEND_REMINDER)
+                .title("다른 회원 알림")
+                .body("다른 회원의 알림입니다.")
+                .build());
+
+        // when
+        ResultActions result = mockMvc.perform(post(url + "/{notificationId}/read", otherNotification.getNotificationId())
+                .header(AUTHORIZATION_HEADER, AUTHORIZATION_VALUE_PREFIX + accessToken));
+
+        // then
+        result.andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("해당 알림에 접근할 권한이 없습니다."));
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 알림은 읽음 처리할 수 없어야 한다.")
+    void 존재하지_않는_알림은_읽음_처리할_수_없어야_한다() throws Exception {
+        // given
+        UUID memberId = testMember.getMemberId();
+        String accessToken = createAccessToken(memberId);
+        Long nonExistentNotificationId = 999999L;
+
+        // when
+        ResultActions result = mockMvc.perform(post(url + "/{notificationId}/read", nonExistentNotificationId)
+                .header(AUTHORIZATION_HEADER, AUTHORIZATION_VALUE_PREFIX + accessToken));
+
+        // then
+        result.andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("알림을 찾을 수 없습니다."));
     }
 
     private String createAccessToken(UUID memberId) {

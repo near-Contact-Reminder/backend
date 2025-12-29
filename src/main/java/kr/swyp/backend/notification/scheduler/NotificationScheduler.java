@@ -12,7 +12,9 @@ import kr.swyp.backend.friend.repository.FriendAnniversaryRepository;
 import kr.swyp.backend.friend.repository.FriendRepository;
 import kr.swyp.backend.member.domain.Member;
 import kr.swyp.backend.member.repository.MemberRepository;
+import kr.swyp.backend.notification.enums.NotificationType;
 import kr.swyp.backend.notification.service.FcmService;
+import kr.swyp.backend.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -30,6 +32,7 @@ public class NotificationScheduler {
     private final FriendAnniversaryRepository friendAnniversaryRepository;
     private final MemberRepository memberRepository;
     private final FcmService fcmService;
+    private final NotificationService notificationService;
 
     /**
      * 매일 오전 9시에 실행되는 친구 챙김 알림 스케줄러.
@@ -70,7 +73,7 @@ public class NotificationScheduler {
 
             friendRepository.findById(friendId).ifPresent(friend -> {
                 String reason = "오늘은 " + anniversary.getTitle() + "입니다.";
-                sendReminderForFriend(friend, reason);
+                sendReminderForFriend(friend, reason, NotificationType.ANNIVERSARY);
                 processedFriendIds.add(friendId);
             });
         }
@@ -80,10 +83,26 @@ public class NotificationScheduler {
     }
 
     private void sendReminderForFriend(Friend friend, String reason) {
+        sendReminderForFriend(friend, reason, NotificationType.FRIEND_REMINDER);
+    }
+
+    private void sendReminderForFriend(Friend friend, String reason, NotificationType type) {
         UUID memberId = friend.getMemberId();
 
         memberRepository.findById(memberId).ifPresent(member -> {
-            // 알림 동의를 한 회원이고, FCM 토큰이 있는 경우에만 알림 전송
+            String title = "친구 챙기기";
+            String body = friend.getName() + "님과 연락할 시간이에요!";
+
+            // 알림을 DB에 저장 (FCM 전송 여부와 관계없이)
+            notificationService.saveNotification(
+                    memberId,
+                    friend.getFriendId(),
+                    type,
+                    title,
+                    body
+            );
+
+            // 알림 동의를 한 회원이고, FCM 토큰이 있는 경우에만 FCM 전송
             if (member.getNotificationAgreedAt() != null && member.getFcmToken() != null
                     && !member.getFcmToken().isEmpty()) {
 
@@ -100,8 +119,8 @@ public class NotificationScheduler {
                 log.debug("Sent reminder for friend {} to member {}",
                         friend.getName(), memberId);
             } else {
-                log.debug("Skipped sending reminder for friend {} to member {} "
-                                + "(no notification consent or FCM token)",
+                log.debug("Skipped FCM for friend {} to member {} "
+                                + "(no notification consent or FCM token), but saved to DB",
                         friend.getName(), memberId);
             }
         });
