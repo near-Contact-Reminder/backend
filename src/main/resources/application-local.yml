@@ -24,7 +24,7 @@ spring:
     import:
       - classpath:/application-social.yml
       - classpath:/application-aws.yml
-
+      - classpath:/application-ai.yml
 swyp:
   jwt:
     secret: fJm76UJ3g8JL5P9tM3vUZbpuNDKVwGD8RQeMbwu2T15iZpvTM0LQCqERiXqK4Xc0

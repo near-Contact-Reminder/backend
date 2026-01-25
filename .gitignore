@@ -1,5 +1,6 @@
 HELP.md
 .gradle
+.env
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
@@ -47,6 +48,9 @@ src/main/resources/static/AuthKey.p8
 
 ### AWS Settings ###
 src/main/resources/application-aws.yml
+
+### AI Settings ###
+src/main/resources/application-ai.yml
 
 ### Claude Code ###
 .claude/
