@@ -18,16 +18,18 @@ public class NotificationResponseDto {
 
     private Long notificationId;
     private UUID friendId;
+    private String friendName;
     private NotificationType type;
     private String title;
     private String body;
     private Boolean isRead;
     private LocalDateTime createdAt;
 
-    public static NotificationResponseDto from(Notification notification) {
+    public static NotificationResponseDto from(Notification notification, String friendName) {
         return NotificationResponseDto.builder()
                 .notificationId(notification.getNotificationId())
                 .friendId(notification.getFriendId())
+                .friendName(friendName)
                 .type(notification.getType())
                 .title(notification.getTitle())
                 .body(notification.getBody())

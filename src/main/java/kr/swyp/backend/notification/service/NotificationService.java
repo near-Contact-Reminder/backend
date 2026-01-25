@@ -4,6 +4,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import kr.swyp.backend.friend.domain.Friend;
+import kr.swyp.backend.friend.repository.FriendRepository;
 import kr.swyp.backend.member.domain.Member;
 import kr.swyp.backend.member.repository.MemberRepository;
 import kr.swyp.backend.notification.domain.Notification;
@@ -22,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class NotificationService {
 
     private final MemberRepository memberRepository;
+    private final FriendRepository friendRepository;
     private final FcmService fcmService;
     private final NotificationRepository notificationRepository;
 
@@ -124,9 +129,16 @@ public class NotificationService {
      */
     @Transactional(readOnly = true)
     public List<NotificationResponseDto> getNotifications(UUID memberId) {
-        return notificationRepository.findByMemberIdOrderByCreatedAtDesc(memberId)
-                .stream()
-                .map(NotificationResponseDto::from)
+        List<Notification> notifications =
+                notificationRepository.findByMemberIdOrderByCreatedAtDesc(memberId);
+        Map<UUID, String> friendNameMap = getFriendNameMap(memberId);
+
+        return notifications.stream()
+                .map(notification -> NotificationResponseDto.from(
+                        notification,
+                        notification.getFriendId() != null
+                                ? friendNameMap.get(notification.getFriendId())
+                                : null))
                 .toList();
     }
 
@@ -138,10 +150,28 @@ public class NotificationService {
      */
     @Transactional(readOnly = true)
     public List<NotificationResponseDto> getUnreadNotifications(UUID memberId) {
-        return notificationRepository.findByMemberIdAndIsReadFalseOrderByCreatedAtDesc(memberId)
-                .stream()
-                .map(NotificationResponseDto::from)
+        List<Notification> notifications =
+                notificationRepository.findByMemberIdAndIsReadFalseOrderByCreatedAtDesc(memberId);
+        Map<UUID, String> friendNameMap = getFriendNameMap(memberId);
+
+        return notifications.stream()
+                .map(notification -> NotificationResponseDto.from(
+                        notification,
+                        notification.getFriendId() != null
+                                ? friendNameMap.get(notification.getFriendId())
+                                : null))
                 .toList();
+    }
+
+    /**
+     * 회원의 친구 ID와 이름 매핑을 조회합니다.
+     *
+     * @param memberId 회원 ID
+     * @return 친구 ID와 이름 매핑
+     */
+    private Map<UUID, String> getFriendNameMap(UUID memberId) {
+        return friendRepository.findAllByMemberId(memberId).stream()
+                .collect(Collectors.toMap(Friend::getFriendId, Friend::getName));
     }
 
     /**

@@ -14,4 +14,5 @@ public class FcmNotificationRequest {
     private String body;
     private Map<String, String> data;
     private UUID friendId;
+    private String friendName;
 }

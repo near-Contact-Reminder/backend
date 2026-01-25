@@ -49,6 +49,11 @@ public class FcmServiceImpl implements FcmService {
                 messageBuilder.putData("friendId", request.getFriendId().toString());
             }
 
+            // Friend Name 추가
+            if (request.getFriendName() != null) {
+                messageBuilder.putData("friendName", request.getFriendName());
+            }
+
             // body를 data 필드에도 추가 (iOS 요구사항)
             messageBuilder.putData("body", request.getBody());
 
@@ -94,6 +99,7 @@ public class FcmServiceImpl implements FcmService {
                 .title("친구 챙기기")
                 .body(body)
                 .friendId(friendId)
+                .friendName(friendName)
                 .data(data)
                 .build();
 
