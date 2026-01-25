@@ -22,6 +22,7 @@ jobs:
           echo "${{ secrets.DEV_APPLICATION_YML }}" | base64 --decode > src/main/resources/application-dev.yml
           echo "${{ secrets.SOCIAL_APPLICATION_YML }}" | base64 --decode > src/main/resources/application-social.yml
           echo "${{ secrets.AWS_APPLICATION_YML }}" | base64 --decode > src/main/resources/application-aws.yml
+          echo "${{ secrets.AI_APPLICATION_YML }}" | base64 --decode > src/main/resources/application-ai.yml
           find src
           rm src/main/resources/application-local.yml
           rm src/main/resources/application-test.yml
